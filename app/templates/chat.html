@@ -441,6 +441,11 @@
         </div>
     </div>
     
+    <!-- Context Menu -->
+    <div id="contextMenu" style="display: none; position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; z-index: 1000;">
+        <button id="editChatName" style="display: block; width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer;">Чаттын атын өзгөртүү</button>
+        <button id="deleteChat" style="display: block; width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer; color: red;">Чатты өчүрүү</button>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -456,6 +461,9 @@
     const chatAvatar = document.getElementById('chatAvatar');
     const chatHeader = document.querySelector('.chat-header');
     const messagesSpinner = document.getElementById('messagesSpinner');
+    const contextMenu = document.getElementById('contextMenu');
+    let selectedChatId = null;
+    let isGroupChat = false;
 
     // Переменные для активного чата
     let activeContactId = null;
@@ -880,6 +888,86 @@
             const name = group.querySelector('.group-name').textContent.toLowerCase();
             group.style.display = name.includes(searchText) ? 'flex' : 'none';
         });
+    });
+
+    // Add right-click event listener to contact and group items
+    document.addEventListener('contextmenu', function(e) {
+        const contactItem = e.target.closest('.contact-item');
+        const groupItem = e.target.closest('.group-item');
+
+        if (contactItem || groupItem) {
+            e.preventDefault(); // Prevent the default context menu
+
+            isGroupChat = !!groupItem;
+            selectedChatId = isGroupChat 
+                ? groupItem.getAttribute('data-id') 
+                : contactItem.getAttribute('data-id');
+
+            // Show the context menu at the mouse position
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
+        } else {
+            contextMenu.style.display = 'none';
+        }
+    });
+
+    // Hide context menu on click outside
+    document.addEventListener('click', function() {
+        contextMenu.style.display = 'none';
+    });
+
+    // Edit chat name
+    document.getElementById('editChatName').addEventListener('click', function() {
+        const newName = prompt('Жаңы атын киргизиңиз:');
+        if (newName) {
+            const url = isGroupChat 
+                ? `/api/edit_group_name/${selectedChatId}` 
+                : `/api/edit_contact_name/${selectedChatId}`;
+
+            fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Чаттын аты ийгиликтүү өзгөртүлдү!');
+                    location.reload(); // Reload the page to update the chat list
+                } else {
+                    alert('Чаттын атын өзгөртүүдө ката кетти.');
+                }
+            })
+            .catch(error => {
+                console.error('Чаттын атын өзгөртүүдө ката:', error);
+                alert('Чаттын атын өзгөртүүдө ката кетти.');
+            });
+        }
+    });
+
+    // Delete chat
+    document.getElementById('deleteChat').addEventListener('click', function() {
+        if (confirm('Чатты өчүрүүнү каалайсызбы?')) {
+            const url = isGroupChat 
+                ? `/api/delete_group/${selectedChatId}` 
+                : `/api/delete_contact/${selectedChatId}`;
+
+            fetch(url, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Чат ийгиликтүү өчүрүлдү!');
+                    location.reload(); // Reload the page to update the chat list
+                } else {
+                    alert('Чатты өчүрүүдө ката кетти.');
+                }
+            })
+            .catch(error => {
+                console.error('Чатты өчүрүүдө ката:', error);
+                alert('Чатты өчүрүүдө ката кетти.');
+            });
+        }
     });
 });
     </script>

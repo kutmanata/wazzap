@@ -211,3 +211,59 @@ def get_messages():
         })
     
     return jsonify({'messages': messages_json}), 200
+
+@app.route('/api/delete_contact/<int:contact_id>', methods=['DELETE'])
+@login_required
+def delete_contact(contact_id):
+    contact = User.query.get(contact_id)
+    if not contact or not current_user.is_contact(contact):
+        return jsonify({'success': False, 'error': 'Контакт табылган жок'}), 404
+
+    current_user.remove_contact(contact)
+    db.session.commit()
+    return jsonify({'success': True}), 200
+
+@app.route('/api/delete_group/<int:group_id>', methods=['DELETE'])
+@login_required
+def delete_group(group_id):
+    group = Group.query.get(group_id)
+    if not group or current_user not in group.members:
+        return jsonify({'success': False, 'error': 'Группа табылган жок'}), 404
+
+    group.members.remove(current_user)
+    if not group.members:  # If no members remain, delete the group
+        db.session.delete(group)
+    db.session.commit()
+    return jsonify({'success': True}), 200
+
+@app.route('/api/edit_contact_name/<int:contact_id>', methods=['PUT'])
+@login_required
+def edit_contact_name(contact_id):
+    contact = User.query.get(contact_id)
+    if not contact or not current_user.is_contact(contact):
+        return jsonify({'success': False, 'error': 'Контакт табылган жок'}), 404
+
+    data = request.json
+    new_name = data.get('name')
+    if not new_name:
+        return jsonify({'success': False, 'error': 'Жаңы атын киргизиңиз'}), 400
+
+    contact.username = new_name
+    db.session.commit()
+    return jsonify({'success': True}), 200
+
+@app.route('/api/edit_group_name/<int:group_id>', methods=['PUT'])
+@login_required
+def edit_group_name(group_id):
+    group = Group.query.get(group_id)
+    if not group or current_user not in group.members:
+        return jsonify({'success': False, 'error': 'Группа табылган жок'}), 404
+
+    data = request.json
+    new_name = data.get('name')
+    if not new_name:
+        return jsonify({'success': False, 'error': 'Жаңы атын киргизиңиз'}), 400
+
+    group.name = new_name
+    db.session.commit()
+    return jsonify({'success': True}), 200

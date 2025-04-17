@@ -120,4 +120,4 @@ dmypy.json
 cython_debug/
 
 # Chat database
-instance/chat.db
+chat.db

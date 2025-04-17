@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        
+        body {
+            background-color: #f1f1f1;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: #4a5664;
+            color: white;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .header {
+            padding: 15px;
+            background-color: #3c4653;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h2 {
+            font-size: 18px;
+        }
+        
+        .actions {
+            display: flex;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            margin-left: 15px;
+            cursor: pointer;
+        }
+        
+        .search-container {
+            padding: 10px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 20px;
+            background-color: #3c4653;
+            color: white;
+        }
+        
+        .search-input::placeholder {
+            color: #aaa;
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: #3c4653;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid #4285f4;
+        }
+        
+        .contact-list, .group-list {
+            padding: 10px 0;
+        }
+        
+        .contact-item, .group-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .contact-item:hover, .group-item:hover {
+            background-color: #3c4653;
+        }
+        
+        .contact-item.active, .group-item.active {
+            background-color: #3c4653;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #4285f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .contact-info, .group-info {
+            flex: 1;
+        }
+        
+        .contact-name, .group-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .last-message {
+            font-size: 12px;
+            color: #ddd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .contact-meta {
+            text-align: right;
+            font-size: 12px;
+            color: #ddd;
+        }
+        
+        .unread-badge {
+            background-color: #4285f4;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 3px;
+            margin-left: auto;
+        }
+        .chat-container .chat-header,
+        .chat-container .messages-container,
+        .chat-container .message-form {
+            display: none;
+        }
+
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #e5e5e5;
+        }
+        
+        .chat-header {
+            padding: 15px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .chat-header-info {
+            flex: 1;
+            margin-left: 10px;
+        }
+        
+        .chat-header-name {
+            font-weight: bold;
+        }
+        
+        .chat-header-status {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .chat-header-actions {
+            display: flex;
+        }
+        
+        .header-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 16px;
+            margin-left: 15px;
+            cursor: pointer;
+        }
+        
+        .messages-container {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            max-width: 70%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .message-received {
+            background-color: white;
+            align-self: flex-start;
+        }
+        
+        .message-sent {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+        }
+        
+        .message-content {
+            margin-bottom: 5px;
+        }
+        
+        .message-time {
+            font-size: 10px;
+            color: #999;
+            text-align: right;
+        }
+        
+        .message-form {
+            padding: 10px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            background-color: #f1f1f1;
+            margin: 0 10px;
+        }
+        
+        .send-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .empty-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #999;
+        }
+        
+        .empty-chat i {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        
+        /* Стили для выпадающего меню */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+        }
+        
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        
+        /* Вкладки */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Спиннер загрузки */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #4285f4;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="sidebar">
+        <div class="header">
+            <h2>{{ current_user.username }}</h2>
+            <div class="actions">
+                <button class="action-btn" id="newContact" title="Жаңы контакт"><i class="fas fa-user-plus"></i></button>
+                <button class="action-btn" id="newGroup" title="Жаңы группа"><i class="fas fa-users"></i></button>
+                <div class="dropdown">
+                    <button class="action-btn"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="dropdown-content">
+
+                        <a href="{{ url_for('logout') }}">Чыгуу</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Издөө..." id="searchInput">
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="contacts">Контакттар</div>
+            <div class="tab" data-tab="groups">Группалар</div>
+        </div>
+        
+        <div class="tab-content active" id="contacts-tab">
+            <div class="contact-list" id="contactList">
+                {% for contact in contacts %}
+                <div class="contact-item" data-id="{{ contact.id }}">
+                    <div class="avatar">{{ contact.username[0] }}</div>
+                    <div class="contact-info">
+                        <div class="contact-name">{{ contact.username }}</div>
+                        <div class="last-message">Акыркы билдирүү...</div>
+                    </div>
+                    <div class="contact-meta">
+                        <div class="time">12:34</div>
+                        <div class="unread-badge" style="display: none;">1</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="tab-content" id="groups-tab">
+            <div class="group-list" id="groupList">
+                {% for group in groups %}
+                <div class="group-item" data-id="{{ group.id }}">
+                    <div class="avatar"><i class="fas fa-users"></i></div>
+                    <div class="group-info">
+                        <div class="group-name">{{ group.name }}</div>
+                        <div class="last-message">Акыркы билдирүү...</div>
+                    </div>
+                    <div class="contact-meta">
+                        <div class="time">12:34</div>
+                        <div class="unread-badge" style="display: none;">3</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-container" id="chatContainer">
+        <div class="empty-chat" id="emptyChat">
+            <i class="far fa-comments"></i>
+        </div>
+        
+        <div id="activeChat" style="display: none; flex: 1; display: flex; flex-direction: column;">
+            <div class="chat-header">
+                <div class="avatar" id="chatAvatar"></div>
+                <div class="chat-header-info">
+                    <div class="chat-header-name" id="chatName"></div>
+                    <!-- <div class="chat-header-status" id="chatStatus"></div> -->
+                </div>
+                <!-- <div class="chat-header-actions"> -->
+                    <button class="header-btn"><i class="fas fa-phone"></i></button>
+                    <button class="header-btn"><i class="fas fa-video"></i></button>
+                    <button class="header-btn" id="chatInfo"><i class="fas fa-info-circle"></i></button>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="spinner" id="messagesSpinner" style="display: none;"></div>
+            </div>
+            
+            <form class="message-form" id="messageForm">
+                <button type="button" class="action-btn"><i class="far fa-smile"></i></button>
+                <input type="text" class="message-input" id="messageInput" placeholder="Билдирүү жазыңыз...">
+                <button type="submit" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    // Элементы DOM
+    const contactList = document.getElementById('contactList');
+    const groupList = document.getElementById('groupList');
+    const emptyChat = document.getElementById('emptyChat');
+    const activeChat = document.getElementById('activeChat');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    const chatName = document.getElementById('chatName');
+    const chatAvatar = document.getElementById('chatAvatar');
+    const chatStatus = document.getElementById('chatStatus');
+    const messagesSpinner = document.getElementById('messagesSpinner');
+    const chatHeader = document.querySelector('.chat-header');
+
+    // Переменные для активного чата
+    let activeContactId = null;
+    let activeGroupId = null;
+    let isGroup = false;
+
+    // Переключение вкладок
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Удаляем класс active у всех вкладок
+            tabs.forEach(t => t.classList.remove('active'));
+            // Добавляем класс active текущей вкладке
+            this.classList.add('active');
+
+            // Скрываем все содержимое вкладок
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Показываем соответствующее содержимое
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId + '-tab').classList.add('active');
+        });
+    });
+
+    // Обработчик для контактов
+    contactList.addEventListener('click', function(e) {
+        const contactItem = e.target.closest('.contact-item');
+        if (contactItem) {
+            // Удаляем класс active у всех контактов
+            document.querySelectorAll('.contact-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Добавляем класс active выбранному контакту
+            contactItem.classList.add('active');
+
+            // Получаем ID контакта
+            const contactId = contactItem.getAttribute('data-id');
+
+            // Показываем чат
+            showChat(contactId, false);
+        }
+    });
+
+    // Обработчик для групп
+    groupList.addEventListener('click', function(e) {
+        const groupItem = e.target.closest('.group-item');
+        if (groupItem) {
+            // Удаляем класс active у всех групп
+            document.querySelectorAll('.group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Добавляем класс active выбранной группе
+            groupItem.classList.add('active');
+
+            // Получаем ID группы
+            const groupId = groupItem.getAttribute('data-id');
+
+            // Показываем чат группы
+            showChat(groupId, true);
+        }
+    });
+
+    // Функция для отображения чата
+    function showChat(id, isGroupChat) {
+        // Скрываем пустой чат и показываем активный
+        emptyChat.style.display = 'none';
+        activeChat.style.display = 'flex';
+
+        // Показываем элементы чата
+        chatHeader.style.display = 'flex';
+        messagesContainer.style.display = 'flex';
+        messageForm.style.display = 'flex';
+
+        // Очищаем сообщения
+        messagesContainer.innerHTML = '';
+        messagesSpinner.style.display = 'block';
+
+        // Обновляем переменные активного чата
+        isGroup = isGroupChat;
+        if (isGroupChat) {
+            activeGroupId = id;
+            activeContactId = null;
+
+            // Находим группу по ID
+            const groupItem = document.querySelector(`.group-item[data-id="${id}"]`);
+            if (groupItem) {
+                const groupNameElement = groupItem.querySelector('.group-name');
+                chatName.textContent = groupNameElement ? groupNameElement.textContent : 'Группа';
+                chatAvatar.innerHTML = '<i class="fas fa-users"></i>';
+                chatStatus.textContent = 'Группа';
+            }
+        } else {
+            activeContactId = id;
+            activeGroupId = null;
+
+            // Находим контакт по ID
+            const contactItem = document.querySelector(`.contact-item[data-id="${id}"]`);
+            if (contactItem) {
+                const contactNameElement = contactItem.querySelector('.contact-name');
+                const avatar = contactItem.querySelector('.avatar');
+                chatName.textContent = contactNameElement ? contactNameElement.textContent : 'Контакт';
+                chatAvatar.textContent = avatar ? avatar.textContent : 'A';
+                chatStatus.textContent = 'Онлайн';
+            }
+        }
+
+        // Загружаем сообщения
+        loadMessages();
+    }
+
+    // Функция для загрузки сообщений
+    function loadMessages() {
+        let url;
+        if (isGroup) {
+            url = `/api/get_messages?group_id=${activeGroupId}`;
+        } else {
+            url = `/api/get_messages?contact_id=${activeContactId}`;
+        }
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                messagesSpinner.style.display = 'none';
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+
+                // Отображаем сообщения
+                displayMessages(data.messages);
+            })
+            .catch(error => {
+                messagesSpinner.style.display = 'none';
+                console.error('Ошибка при загрузке сообщений:', error);
+            });
+    }
+
+    // Функция для отображения сообщений
+    function displayMessages(messages) {
+        messagesContainer.innerHTML = '';
+
+        messages.forEach(message => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.is_mine ? 'message-sent' : 'message-received'}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = message.content;
+            messageDiv.appendChild(contentDiv);
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = message.created_at.substring(11, 16); // Только время HH:MM
+            messageDiv.appendChild(timeDiv);
+
+            messagesContainer.appendChild(messageDiv);
+        });
+
+        // Прокручиваем до последнего сообщения
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Обработчик отправки формы
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const content = messageInput.value.trim();
+        if (!content) return;
+
+        let data = {
+            content: content
+        };
+
+        if (isGroup) {
+            data.group_id = activeGroupId;
+        } else {
+            data.recipient_id = activeContactId;
+        }
+
+        // Очищаем поле ввода
+        messageInput.value = '';
+
+        // Отправляем сообщение
+        fetch('/api/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            // Перезагружаем сообщения после отправки
+            loadMessages();
+        })
+        .catch(error => {
+            console.error('Ошибка при отправке сообщения:', error);
+        });
+    });
+
+    // Обработчики навигации
+    document.getElementById('newContact').addEventListener('click', function() {
+        window.location.href = "{{ url_for('new_contact') }}";
+    });
+
+    document.getElementById('newGroup').addEventListener('click', function() {
+        window.location.href = "{{ url_for('new_group') }}";
+    });
+
+    document.getElementById('newSubgroup').addEventListener('click', function() {
+        window.location.href = "{{ url_for('new_subgroup') }}";
+    });
+
+    document.getElementById('chatInfo').addEventListener('click', function() {
+        if (isGroup && activeGroupId) {
+            window.location.href = `/group/${activeGroupId}`;
+        }
+    });
+
+    // Поиск
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchText = e.target.value.toLowerCase();
+
+        // Поиск по контактам
+        const contacts = document.querySelectorAll('.contact-item');
+        contacts.forEach(contact => {
+            const name = contact.querySelector('.contact-name').textContent.toLowerCase();
+            contact.style.display = name.includes(searchText) ? 'flex' : 'none';
+        });
+
+        // Поиск по группам
+        const groups = document.querySelectorAll('.group-item');
+        groups.forEach(group => {
+            const name = group.querySelector('.group-name').textContent.toLowerCase();
+            group.style.display = name.includes(searchText) ? 'flex' : 'none';
+        });
+    });
+});
+
+    </script>
+</body>
+</html>

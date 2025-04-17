@@ -2,6 +2,7 @@ from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from app import app, db
 from app.models import User, Group, Message
+from datetime import datetime, timedelta
 
 @app.route('/')
 def index():
@@ -165,6 +166,7 @@ def send_message():
         return jsonify({'error': 'Билдирүү бош боло албайт'}), 400
     
     message = Message(content=content, sender_id=current_user.id)
+    message.created_at = datetime.utcnow() + timedelta(hours=12)  # Set time to UTC+6
     
     if recipient_id:
         message.recipient_id = recipient_id
@@ -204,7 +206,7 @@ def get_messages():
             'sender_id': msg.sender_id,
             'sender_name': User.query.get(msg.sender_id).username,
             'is_mine': msg.sender_id == current_user.id,
-            'created_at': msg.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'created_at': (msg.created_at - timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S'),  # Convert back to UTC
             'is_read': msg.is_read
         })
     

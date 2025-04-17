@@ -61,6 +61,21 @@ class User(db.Model, UserMixin):
     
     def is_contact(self, user):
         return self.contacts_list.filter(contacts.c.contact_id == user.id).count() > 0
+        
+    def get_last_message_with(self, user_id):
+        """Получить последнее сообщение между текущим пользователем и выбранным контактом"""
+        from app.models import Message
+        sent = Message.query.filter_by(sender_id=self.id, recipient_id=user_id).order_by(Message.created_at.desc()).first()
+        received = Message.query.filter_by(sender_id=user_id, recipient_id=self.id).order_by(Message.created_at.desc()).first()
+        
+        if sent and received:
+            return sent if sent.created_at > received.created_at else received
+        return sent or received
+        
+    def get_last_message_in_group(self, group_id):
+        """Получить последнее сообщение в группе"""
+        from app.models import Message
+        return Message.query.filter_by(group_id=group_id).order_by(Message.created_at.desc()).first()
 
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)

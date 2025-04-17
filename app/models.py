@@ -64,7 +64,6 @@ class User(db.Model, UserMixin):
         
     def get_last_message_with(self, user_id):
         """Получить последнее сообщение между текущим пользователем и выбранным контактом"""
-        from app.models import Message
         sent = Message.query.filter_by(sender_id=self.id, recipient_id=user_id).order_by(Message.created_at.desc()).first()
         received = Message.query.filter_by(sender_id=user_id, recipient_id=self.id).order_by(Message.created_at.desc()).first()
         
@@ -85,6 +84,10 @@ class Group(db.Model):
     
     messages = db.relationship('Message', backref='group')
     creator = db.relationship('User', foreign_keys=[creator_id])
+
+    def get_last_message(self):
+        """Получить последнее сообщение в группе"""
+        return Message.query.filter_by(group_id=self.id).order_by(Message.created_at.desc()).first()
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)

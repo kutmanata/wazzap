@@ -70,6 +70,10 @@ def logout():
 def chat():
     contacts = current_user.contacts_list.all()
     groups = current_user.groups
+    for contact in contacts:
+        contact.last_message = contact.get_last_message_with(current_user.id)
+    for group in groups:
+        group.last_message = group.get_last_message()
     return render_template('chat.html', contacts=contacts, groups=groups)
 
 @app.route('/new_contact', methods=['GET', 'POST'])

@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Контакт жөнүндө маалымат</title>
     <style>
-        body {
+        body 
+        {
             font-family: Arial, sans-serif;
             background-color: #f1f1f1;
             display: flex;
@@ -78,7 +79,7 @@
             <input type="text" name="contact_name" class="contact-name-input" placeholder="Контакттын атын өзгөртүү" value="{{ contact.username }}">
             <button type="submit">Сактоо</button>
         </form>
-        <button class="delete-button" onclick="deleteContact({{ contact.id }})">Контактты жок кылуу</button>
+        <button class="delete-button" onclick="deleteContact('{{ contact.id }}')">Контактты жок кылуу</button>
         <h2>{{ contact.username }}</h2>
         <p>{{ contact.email }}</p>
     </div>

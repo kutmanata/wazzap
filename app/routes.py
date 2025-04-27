@@ -92,27 +92,82 @@ def chat():
 @login_required
 def new_contact():
     if request.method == 'POST':
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        email = request.form.get('email')
+        email = request.form.get('email', '').strip()
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
 
-        user = User.query.filter_by(email=email).first()
+        # Проверяем правильность ввода
+        if not email and not (first_name or last_name):
+            flash('Сураныч, колдонуучунун email же аты-жөнүн киргизиңиз', 'danger')
+            return render_template('new_contact.html')
 
+        # Ищем пользователя по email (приоритетный поиск)
+        user = None
+        if email:
+            user = User.query.filter_by(email=email).first()
+        
+        # Если по email не найден, ищем по имени и фамилии
+        if not user and (first_name or last_name):
+            query = User.query
+            
+            if first_name:
+                query = query.filter(User.first_name.ilike(f"%{first_name}%"))
+            
+            if last_name:
+                query = query.filter(User.last_name.ilike(f"%{last_name}%"))
+            
+            # Получаем результаты поиска
+            users = query.all()
+            
+            # Если найдено несколько пользователей, отображаем список выбора
+            if len(users) > 1:
+                return render_template('select_contact.html', users=users)
+            elif len(users) == 1:
+                user = users[0]
+
+        # Если пользователь не найден
         if not user:
-            flash('Мындай колдонуучу табылган жок', 'danger')
-            return redirect(url_for('new_contact'))
+            flash('Мындай колдонуучу табылган жок. Башка маалыматтарды киргизип көрүңүз.', 'danger')
+            return render_template('new_contact.html')
+
+        # Проверяем, является ли пользователь уже контактом
+        if current_user.id == user.id:
+            flash('Сиз өзүңүздү контакт катары кошо албайсыз', 'warning')
+            return redirect(url_for('chat'))
 
         if current_user.is_contact(user):
             flash('Бул колдонуучу сиздин контакттарыңызда бар', 'warning')
             return redirect(url_for('chat'))
 
+        # Добавляем контакт
         current_user.add_contact(user)
         db.session.commit()
 
-        flash('Контакт ийгиликтүү кошулду!', 'success')
+        flash(f'{user.username} контакт катары ийгиликтүү кошулду!', 'success')
         return redirect(url_for('chat'))
 
     return render_template('new_contact.html')
+
+@app.route('/select_contact/<int:user_id>', methods=['POST'])
+@login_required
+def select_contact(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    # Проверяем, является ли пользователь уже контактом
+    if current_user.id == user.id:
+        flash('Сиз өзүңүздү контакт катары кошо албайсыз', 'warning')
+        return redirect(url_for('chat'))
+        
+    if current_user.is_contact(user):
+        flash('Бул колдонуучу сиздин контакттарыңызда бар', 'warning')
+        return redirect(url_for('chat'))
+    
+    # Добавляем контакт
+    current_user.add_contact(user)
+    db.session.commit()
+    
+    flash(f'{user.username} контакт катары ийгиликтүү кошулду!', 'success')
+    return redirect(url_for('chat'))
 
 @app.route('/new_group', methods=['GET', 'POST'])
 @login_required
@@ -148,7 +203,17 @@ def add_contacts_to_group(group_id):
         flash('Контакттар группага ийгиликтүү кошулду!', 'success')
         return redirect(url_for('chat'))
 
-    group_members = [member.username for member in group.members if member != current_user]
+    # Изменяем формат представления участников группы
+    group_members = []
+    for member in group.members:
+        if member != current_user:
+            display_name = member.username
+            if not display_name and (member.first_name or member.last_name):
+                display_name = f"{member.first_name or ''} {member.last_name or ''}".strip()
+            elif not display_name:
+                display_name = member.email
+            group_members.append(display_name)
+
     contacts = current_user.contacts_list.all()
     return render_template('add_contacts_to_group.html', group=group, contacts=contacts, group_members=group_members)
 
@@ -225,13 +290,34 @@ def get_messages():
     if contact_id:
         sent_messages = Message.query.filter_by(sender_id=current_user.id, recipient_id=contact_id).all()
         received_messages = Message.query.filter_by(sender_id=contact_id, recipient_id=current_user.id).all()
+        
+        # Отмечаем полученные сообщения как прочитанные
+        unread_count = 0
+        for msg in received_messages:
+            if not msg.is_read:
+                msg.is_read = True
+                unread_count += 1
+        
         messages = sent_messages + received_messages
         messages.sort(key=lambda x: x.created_at)
+        
     elif group_id:
         messages = Message.query.filter_by(group_id=group_id).order_by(Message.created_at).all()
+        
+        # Отмечаем все сообщения группы как прочитанные, кроме сообщений текущего пользователя
+        unread_count = 0
+        for msg in messages:
+            if msg.sender_id != current_user.id and not msg.is_read:
+                msg.is_read = True
+                unread_count += 1
     else:
         return jsonify({'error': 'Контакт же группа ID көрсөтүлүшү керек'}), 400
+    
+    # Сохраняем изменения, только если были непрочитанные сообщения
+    if unread_count > 0:
+        db.session.commit()
 
+    # Преобразуем в JSON и отправляем
     messages_json = []
     for msg in messages:
         messages_json.append({
@@ -246,6 +332,100 @@ def get_messages():
 
     return jsonify({'messages': messages_json}), 200
 
+@app.route('/api/mark_as_read', methods=['POST'])
+@login_required
+def mark_as_read():
+    # Получаем параметры из JSON или из URL
+    data = request.json or {}
+    message_id = data.get('message_id')
+    contact_id = data.get('contact_id') or request.args.get('contact_id')
+    group_id = data.get('group_id') or request.args.get('group_id')
+    
+    # Если указан ID сообщения - отмечаем конкретное сообщение
+    if message_id:
+        message = Message.query.get(message_id)
+        if message and message.recipient_id == current_user.id:
+            message.is_read = True
+            db.session.commit()
+            return jsonify({'success': True, 'marked': 1}), 200
+    
+    # Если указан ID контакта - отмечаем все сообщения от этого контакта
+    elif contact_id:
+        messages = Message.query.filter_by(
+            sender_id=contact_id, 
+            recipient_id=current_user.id, 
+            is_read=False
+        ).all()
+        
+        for message in messages:
+            message.is_read = True
+        
+        db.session.commit()
+        return jsonify({'success': True, 'marked': len(messages)}), 200
+    
+    # Если указан ID группы - отмечаем все сообщения в группе
+    elif group_id:
+        group = Group.query.get(group_id)
+        if group and current_user in group.members:
+            count = group.mark_messages_as_read(current_user.id)
+            db.session.commit()
+            return jsonify({'success': True, 'marked': count}), 200
+    
+    return jsonify({'error': 'Необходимо указать ID сообщения, контакта или группы'}), 400
+
+@app.route('/api/mark_all_as_read', methods=['POST'])
+@login_required
+def mark_all_as_read():
+    data = request.json
+    contact_id = data.get('contact_id')
+    group_id = data.get('group_id')
+    
+    if contact_id:
+        messages = Message.query.filter_by(sender_id=contact_id, recipient_id=current_user.id, is_read=False).all()
+        for message in messages:
+            message.is_read = True
+        db.session.commit()
+        return jsonify({'success': True, 'count': len(messages)}), 200
+    
+    elif group_id:
+        group = Group.query.get(group_id)
+        if group and current_user in group.members:
+            count = group.mark_messages_as_read(current_user.id)
+            db.session.commit()
+            return jsonify({'success': True, 'count': count}), 200
+    
+    return jsonify({'error': 'Необходимо указать ID контакта или группы'}), 400
+
+@app.route('/api/unread_counts', methods=['GET'])
+@login_required
+def get_unread_counts():
+    # Получаем непрочитанные сообщения для каждого контакта
+    contacts = current_user.contacts_list.all()
+    contacts_unread = {}
+    
+    for contact in contacts:
+        count = current_user.count_unread_messages(contact.id)
+        if count > 0:
+            contacts_unread[str(contact.id)] = count
+    
+    # Получаем непрочитанные сообщения для каждой группы
+    groups = current_user.groups
+    groups_unread = {}
+    
+    for group in groups:
+        count = current_user.count_unread_group_messages(group.id)
+        if count > 0:
+            groups_unread[str(group.id)] = count
+    
+    # Общее количество непрочитанных сообщений
+    total_unread = current_user.count_unread_messages() + current_user.count_unread_group_messages()
+    
+    return jsonify({
+        'total': total_unread,
+        'contacts': contacts_unread,
+        'groups': groups_unread
+    }), 200
+
 @app.route('/api/create_group', methods=['POST'])
 def create_group():
     data = request.get_json()
@@ -257,17 +437,58 @@ def create_group():
     return jsonify({'success': True})
 
 @app.route('/api/create_contact', methods=['POST'])
+@login_required
 def create_contact():
     data = request.get_json()
-    first_name = data.get('first_name')
-    last_name = data.get('last_name')
-    email = data.get('email')
-    user = User.query.filter_by(email=email).first()
+    email = data.get('email', '').strip()
+    first_name = data.get('first_name', '').strip()
+    last_name = data.get('last_name', '').strip()
+    username = data.get('username', '').strip()
+    
+    # Проверяем правильность ввода
+    if not email and not username and not (first_name or last_name):
+        return jsonify({'error': 'Колдонуучу маалыматтары берилген жок'}), 400
+    
+    # Ищем пользователя по разным параметрам
+    user = None
+    
+    if email:
+        user = User.query.filter_by(email=email).first()
+    
+    if not user and username:
+        user = User.query.filter_by(username=username).first()
+    
+    if not user and (first_name or last_name):
+        query = User.query
+        
+        if first_name:
+            query = query.filter(User.first_name.ilike(f"%{first_name}%"))
+        
+        if last_name:
+            query = query.filter(User.last_name.ilike(f"%{last_name}%"))
+        
+        user = query.first()
+    
     if not user:
         return jsonify({'error': 'Колдонуучу табылган жок'}), 404
+    
+    # Проверяем, является ли пользователь уже контактом
+    if current_user.id == user.id:
+        return jsonify({'error': 'Сиз өзүңүздү контакт катары кошо албайсыз'}), 400
+        
+    if current_user.is_contact(user):
+        return jsonify({'error': 'Бул колдонуучу сиздин контакттарыңызда бар'}), 400
+    
+    # Добавляем контакт
     current_user.add_contact(user)
     db.session.commit()
-    return jsonify({'success': True})
+    
+    return jsonify({
+        'success': True, 
+        'message': f'{user.username} контакт катары ийгиликтүү кошулду!',
+        'user_id': user.id,
+        'username': user.username
+    }), 200
 
 @app.route('/api/leave_group', methods=['POST'])
 def leave_group():

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакт жөнүндө маалымат</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        .container h2 {
+            margin-bottom: 20px;
+        }
+        .container ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .container li {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .container button {
+            padding: 10px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .container button:hover {
+            background-color: #45a049;
+        }
+        .delete-button {
+            background-color: #f44336;
+        }
+        .delete-button:hover {
+            background-color: #e57373;
+        }
+        .contact-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .contact-icon img {
+            width: 50px;
+            height: 50px;
+        }
+        .contact-name-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="contact-icon">
+            <img src="https://via.placeholder.com/50?text={{ contact.username[0].upper() }}" alt="Contact Icon">
+        </div>
+        <form method="POST">
+            <input type="text" name="contact_name" class="contact-name-input" placeholder="Контакттын атын өзгөртүү" value="{{ contact.username }}">
+            <button type="submit">Сактоо</button>
+        </form>
+        <button class="delete-button" onclick="deleteContact({{ contact.id }})">Контактты жок кылуу</button>
+        <h2>{{ contact.username }}</h2>
+        <p>{{ contact.email }}</p>
+    </div>
+
+    <script>
+        function deleteContact(contactId) {
+            if (confirm('Сиз контактты жок кылууну кааласызбы?')) {
+                fetch('/api/delete_contact?contact_id=' + contactId, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Контакт ийгиликтүү жок кылынды!');
+                        window.location.href = '/chat';
+                    } else {
+                        alert('Контактты жок кылууда ката кетти: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при отправке запроса:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

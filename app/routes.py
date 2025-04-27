@@ -288,6 +288,56 @@ def leave_group():
 
     return jsonify({'success': True})
 
+@app.route('/contact/<int:contact_id>', methods=['GET', 'POST'])
+@login_required
+def contact_info(contact_id):
+    # Контактты базадан алабыз
+    contact = User.query.get_or_404(contact_id)
+
+    # Текшерүү - бул контакт колдонуучунун контактыбы
+    contact_exists = False
+    for user_contact in current_user.contacts_list:
+        if user_contact.id == contact.id:
+            contact_exists = True
+            break
+
+    if not contact_exists:
+        flash('Бул сиздин контактыңыз эмес', 'danger')
+        return redirect(url_for('chat'))
+
+    if request.method == 'POST':
+        new_name = request.form.get('contact_name')
+        if new_name and new_name != contact.username:
+            contact.username = new_name
+            db.session.commit()
+            flash('Контакттын аты ийгиликтүү өзгөртүлдү!', 'success')
+            return redirect(url_for('contact_info', contact_id=contact.id))
+
+    return render_template('contact_info.html', contact=contact)
+
+@app.route('/api/delete_contact', methods=['POST'])
+@login_required
+def delete_contact():
+    contact_id = request.args.get('contact_id')
+    contact = User.query.get(contact_id)
+    if not contact:
+        return jsonify({'error': 'Контакт табылган жок'}), 404
+
+    # Текшерүү - бул контакт колдонуучунун контактыбы
+    contact_exists = False
+    for user_contact in current_user.contacts_list:
+        if user_contact.id == contact.id:
+            contact_exists = True
+            break
+
+    if not contact_exists:
+        return jsonify({'error': 'Бул сиздин контактыңыз эмес'}), 400
+
+    current_user.contacts_list.remove(contact)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
 @app.route('/api/delete_group', methods=['DELETE'])
 def delete_group_api():
     group_id = request.args.get('group_id')

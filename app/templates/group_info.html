@@ -2,19 +2,137 @@
 <html lang="ky">
 <head>
     <meta charset="UTF-8">
-    <title>Группа маалыматтары</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Группанын маалыматы</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        .container h2 {
+            margin-bottom: 20px;
+        }
+        .container ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .container li {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .container button {
+            padding: 10px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .container button:hover {
+            background-color: #45a049;
+        }
+        .delete-button {
+            background-color: #f44336;
+        }
+        .delete-button:hover {
+            background-color: #e57373;
+        }
+        .group-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .group-icon img {
+            width: 50px;
+            height: 50px;
+        }
+        .group-name-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Группа: {{ group.name }}</h1>
-    <p>Сүрөттөмө: {{ group.description }}</p>
+    <div class="container">
+        <div class="group-icon">
+            <img src="https://cdn-icons-png.flaticon.com/512/147/147144.png" alt="Group Icon">
+        </div>
+        <form method="POST">
+            <input type="text" name="group_name" class="group-name-input" placeholder="Группанын атын өзгөртүү" value="{{ group.name }}">
+            <button type="submit">Сактоо</button>
+        </form>
+        <button class="delete-button" onclick="leaveGroup({{ group.id }})">Leave the group</button>
+        <button class="delete-button" onclick="deleteGroup({{ group.id }})">Delete a group</button>
+        <button onclick="addMembers({{ group.id }})">Add members</button>
+        <h2>{{ group.name }}</h2>
+        <ul>
+            {% for member in members %}
+                <li>{{ member.username }}</li>
+            {% endfor %}
+        </ul>
+    </div>
 
-    <h2>Мүчөлөр:</h2>
-    <ul>
-        {% for member in members %}
-            <li>{{ member.name }}</li>
-        {% endfor %}
-    </ul>
+    <script>
+        function leaveGroup(groupId) {
+            if (confirm('Сиз группадан чыгууну кааласызбы?')) {
+                fetch('/api/leave_group?group_id=' + groupId, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Сиз группадан ийгиликтүү чыгыңыз!');
+                        window.location.href = '/chat';
+                    } else {
+                        alert('Группадан чыгууда ката кетти: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при отправке запроса:', error);
+                });
+            }
+        }
 
-    <a href="{{ url_for('chat') }}">Артка кайтуу</a>
+        function deleteGroup(groupId) {
+            if (confirm('Сиз группаны жок кылууну кааласызбы?')) {
+                fetch('/api/delete_group?group_id=' + groupId, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Группа ийгиликтүү жок кылынды!');
+                        window.location.href = '/chat';
+                    } else {
+                        alert('Группаны жок кылууда ката кетти: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при отправке запроса:', error);
+                });
+            }
+        }
+
+        function addMembers(groupId) {
+            window.location.href = '/add_contacts_to_group/' + groupId;
+        }
+    </script>
 </body>
 </html>

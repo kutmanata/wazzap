@@ -418,6 +418,31 @@
         #profileModal button:hover {
             background-color: #357ae8;
         }
+
+        /* Emoji picker styles */
+        #emojiModal {
+            display: none;
+            position: absolute;
+            bottom: 60px;
+            right: 10px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px;
+        }
+
+        #emojiModal button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        #emojiModal button:hover {
+            background-color: #f1f1f1;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -431,8 +456,7 @@
                 <div class="dropdown">
                     <button class="action-btn" id="settingsBtn" title="Настройки"><i class="fas fa-cog"></i></button>
                     <div class="dropdown-content">
-                        <a href="#" id="changeLanguage">Тилди өзгөртүү</a>
-                        <a href="#" id="profileSettings">Профилди өзгөртүү</a>
+                        <!-- <a href="#" id="profileSettings">Профилди өзгөртүү</a> -->
                         <a href="{{ url_for('logout') }}">Чыгуу</a>
                     </div>
                 </div>
@@ -513,14 +537,14 @@
             </div>
 
             <form class="message-form" id="messageForm">
-                <button type="button" class="action-btn"><i class="far fa-smile"></i></button>
+                <button type="button" class="action-btn" id="emojiPicker"><i class="far fa-smile"></i></button>
                 <input type="text" class="message-input" id="messageInput" placeholder="Билдирүү жазыңыз...">
                 <button type="submit" class="send-btn"><i class="fas fa-paper-plane"></i></button>
             </form>
         </div>
     </div>
 
-    <div id="languageModal">
+    <!-- <div id="languageModal">
         <h3>Тилди тандаңыз</h3>
         <button id="selectEnglish">Англис тили</button>
         <button id="selectRussian">Орус тили</button>
@@ -534,8 +558,33 @@
         <input type="text" id="usernameInput" placeholder="Жаңы атыңызды жазыңыз">
         <button id="saveProfileChanges">Сактоо</button>
         <button id="closeProfileModal">Жабуу</button>
-    </div>
+    </div> -->
 
+    <div id="emojiModal">
+        <button class="emoji" onclick="addEmoji('😊')">😊</button>
+        <button class="emoji" onclick="addEmoji('😂')">😂</button>
+        <button class="emoji" onclick="addEmoji('❤️')">❤️</button>
+        <!-- Добавьте другие смайлики -->
+    </div>
+    <script>
+        // ... ваш текущий код ...
+    
+        // Обработчики навигации
+        document.getElementById('newContact').addEventListener('click', function() {
+            window.location.href = "/new_contact"; // Переход на страницу создания контакта
+        });
+    
+        document.getElementById('newGroup').addEventListener('click', function() {
+            window.location.href = "/new_group"; // Переход на страницу создания группы
+        });
+    
+        document.getElementById('chatInfo').addEventListener('click', function() {
+            if (isGroup && activeGroupId) {
+                window.location.href = `/group/${activeGroupId}`; // Переход на страницу информации о группе
+            }
+        });
+    </script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Элементы DOM
@@ -552,13 +601,13 @@
             const messagesSpinner = document.getElementById('messagesSpinner');
             const languageModal = document.getElementById('languageModal');
             const closeModal = document.getElementById('closeModal');
-
-            // Profile modal elements
             const profileModal = document.getElementById('profileModal');
             const closeProfileModal = document.getElementById('closeProfileModal');
             const profilePictureInput = document.getElementById('profilePictureInput');
             const usernameInput = document.getElementById('usernameInput');
             const saveProfileChanges = document.getElementById('saveProfileChanges');
+            const emojiModal = document.getElementById('emojiModal');
+            const emojiPicker = document.getElementById('emojiPicker');
 
             // Переменные для активного чата
             let activeContactId = null;
@@ -1001,24 +1050,24 @@
                 languageModal.style.display = 'none';
             });
 
-            document.getElementById('selectRussian').addEventListener('click', function() {
-                changeLanguage('ru');
-                languageModal.style.display = 'none';
-            });
+            // document.getElementById('selectRussian').addEventListener('click', function() {
+            //     changeLanguage('ru');
+            //     languageModal.style.display = 'none';
+            // });
 
-            document.getElementById('selectKyrgyz').addEventListener('click', function() {
-                changeLanguage('ky');
-                languageModal.style.display = 'none';
-            });
+            // document.getElementById('selectKyrgyz').addEventListener('click', function() {
+            //     changeLanguage('ky');
+            //     languageModal.style.display = 'none';
+            // });
 
-            // Функция для изменения языка
-            function changeLanguage(lang) {
-                // Здесь вы можете добавить логику для изменения языка интерфейса
-                // Например, отправить запрос на сервер для сохранения выбранного языка
-                console.log('Выбранный язык:', lang);
-                // Перезагрузите страницу или обновите интерфейс в зависимости от выбранного языка
-                // Пример: window.location.reload();
-            }
+            // // Функция для изменения языка
+            // function changeLanguage(lang) {
+            //     // Здесь вы можете добавить логику для изменения языка интерфейса
+            //     // Например, отправить запрос на сервер для сохранения выбранного языка
+            //     console.log('Выбранный язык:', lang);
+            //     // Перезагрузите страницу или обновите интерфейс в зависимости от выбранного языка
+            //     // Пример: window.location.reload();
+            // }
 
             // Обработчик для кнопки "Профильди өзгөртүү"
             document.getElementById('profileSettings').addEventListener('click', function(event) {
@@ -1044,7 +1093,19 @@
                 // Закрываем модальное окно после сохранения
                 profileModal.style.display = 'none';
             });
+
+            // Обработчик для кнопки "Эмоции"
+            emojiPicker.addEventListener('click', function() {
+                emojiModal.style.display = 'block';
+            });
+
+            // Функция для добавления эмодзи в сообщение
+            window.addEmoji = function(emoji) {
+                messageInput.value += emoji;
+                emojiModal.style.display = 'none';
+            };
         });
     </script>
 </body>
 </html>
+ 

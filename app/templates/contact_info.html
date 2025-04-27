@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Группанын маалыматы</title>
+    <title>Контакт жөнүндө маалымат</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -51,16 +51,16 @@
         .delete-button:hover {
             background-color: #e57373;
         }
-        .group-icon {
+        .contact-icon {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
         }
-        .group-icon img {
+        .contact-icon img {
             width: 50px;
             height: 50px;
         }
-        .group-name-input {
+        .contact-name-input {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -71,67 +71,37 @@
 </head>
 <body>
     <div class="container">
-        <div class="group-icon">
-            <img src="https://cdn-icons-png.flaticon.com/512/147/147144.png" alt="Group Icon">
+        <div class="contact-icon">
+            <img src="https://via.placeholder.com/50?text={{ contact.username[0].upper() }}" alt="Contact Icon">
         </div>
         <form method="POST">
-            <input type="text" name="group_name" class="group-name-input" placeholder="Группанын атын өзгөртүү" value="{{ group.name }}">
+            <input type="text" name="contact_name" class="contact-name-input" placeholder="Контакттын атын өзгөртүү" value="{{ contact.username }}">
             <button type="submit">Сактоо</button>
         </form>
-        <button class="delete-button" onclick="leaveGroup({{ group.id }})">Leave the group</button>
-        <button class="delete-button" onclick="deleteGroup({{ group.id }})">Delete a group</button>
-        <button onclick="addMembers({{ group.id }})">Add members</button>
-        <h2>{{ group.name }}</h2>
-        <ul>
-            {% for member in members %}
-                <li>{{ member.username }}</li>
-            {% endfor %}
-        </ul>
+        <button class="delete-button" onclick="deleteContact({{ contact.id }})">Контактты жок кылуу</button>
+        <h2>{{ contact.username }}</h2>
+        <p>{{ contact.email }}</p>
     </div>
 
     <script>
-        function leaveGroup(groupId) {
-            if (confirm('Сиз группадан чыгууну кааласызбы?')) {
-                fetch('/api/leave_group?group_id=' + groupId, {
+        function deleteContact(contactId) {
+            if (confirm('Сиз контактты жок кылууну кааласызбы?')) {
+                fetch('/api/delete_contact?contact_id=' + contactId, {
                     method: 'POST'
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Сиз группадан ийгиликтүү чыгыңыз!');
+                        alert('Контакт ийгиликтүү жок кылынды!');
                         window.location.href = '/chat';
                     } else {
-                        alert('Группадан чыгууда ката кетти: ' + data.error);
+                        alert('Контактты жок кылууда ката кетти: ' + data.error);
                     }
                 })
                 .catch(error => {
                     console.error('Ошибка при отправке запроса:', error);
                 });
             }
-        }
-
-        function deleteGroup(groupId) {
-            if (confirm('Сиз группаны жок кылууну кааласызбы?')) {
-                fetch('/api/delete_group?group_id=' + groupId, {
-                    method: 'DELETE'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Группа ийгиликтүү жок кылынды!');
-                        window.location.href = '/chat';
-                    } else {
-                        alert('Группаны жок кылууда ката кетти: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка при отправке запроса:', error);
-                });
-            }
-        }
-
-        function addMembers(groupId) {
-            window.location.href = '/add_contacts_to_group/' + groupId;
         }
     </script>
 </body>

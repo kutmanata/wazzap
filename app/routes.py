@@ -3,6 +3,19 @@ from flask_login import login_user, logout_user, current_user, login_required
 from app import app, db
 from app.models import User, Group, Message
 from datetime import datetime, timedelta
+import os
+from werkzeug.utils import secure_filename
+
+# Профильди өзгөртүү үчүн директорияны аныктап алуу
+UPLOAD_FOLDER = 'static/profile_pics'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['ALLOWED_EXTENSIONS'] = ALLOWED_EXTENSIONS
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def index():
@@ -14,50 +27,48 @@ def index():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('chat'))
-    
+
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        
-        # Колдонуучу аты жана email текшерүү
+
         if User.query.filter_by(username=username).first():
             flash('Мындай колдонуучу аты бар', 'danger')
             return render_template('register.html')
-        
+
         if User.query.filter_by(email=email).first():
             flash('Мындай email бар', 'danger')
             return render_template('register.html')
-        
-        # Жаңы колдонуучуну түзүү
+
         user = User(username=username, email=email)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        
+
         flash('Сиз ийгиликтүү катталдыңыз!', 'success')
         return redirect(url_for('login'))
-    
+
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('chat'))
-    
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        
+
         user = User.query.filter_by(username=username).first()
-        
+
         if not user or not user.check_password(password):
             flash('Колдонуучу аты же пароль туура эмес', 'danger')
             return render_template('login.html')
-        
+
         login_user(user)
         return redirect(url_for('chat'))
-    
+
     return render_template('login.html')
 
 @app.route('/logout')
@@ -84,44 +95,62 @@ def new_contact():
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         email = request.form.get('email')
-        
+
         user = User.query.filter_by(email=email).first()
-        
+
         if not user:
             flash('Мындай колдонуучу табылган жок', 'danger')
             return redirect(url_for('new_contact'))
-        
+
         if current_user.is_contact(user):
             flash('Бул колдонуучу сиздин контакттарыңызда бар', 'warning')
             return redirect(url_for('chat'))
-        
+
         current_user.add_contact(user)
         db.session.commit()
-        
+
         flash('Контакт ийгиликтүү кошулду!', 'success')
         return redirect(url_for('chat'))
-    
-    return render_template('new_contact.html') 
+
+    return render_template('new_contact.html')
 
 @app.route('/new_group', methods=['GET', 'POST'])
 @login_required
 def new_group():
     if request.method == 'POST':
         name = request.form.get('name')
-        
+
         if not name:
             flash('Группанын аты бош боло албайт', 'danger')
             return redirect(url_for('new_group'))
-        
+
         group = Group(name=name, creator_id=current_user.id)
         group.members.append(current_user)
         db.session.add(group)
         db.session.commit()
-        
+
         flash('Жаңы группа түзүлдү!', 'success')
-        return redirect(url_for('group_info', group_id=group.id))
-    
+        return redirect(url_for('add_contacts_to_group', group_id=group.id))
+
     return render_template('new_group.html')
+
+@app.route('/add_contacts_to_group/<int:group_id>', methods=['GET', 'POST'])
+@login_required
+def add_contacts_to_group(group_id):
+    group = Group.query.get_or_404(group_id)
+    if request.method == 'POST':
+        selected_contacts = request.form.getlist('contacts')
+        for contact_id in selected_contacts:
+            contact = User.query.get(contact_id)
+            if contact and contact not in group.members:
+                group.members.append(contact)
+        db.session.commit()
+        flash('Контакттар группага ийгиликтүү кошулду!', 'success')
+        return redirect(url_for('chat'))
+
+    group_members = [member.username for member in group.members if member != current_user]
+    contacts = current_user.contacts_list.all()
+    return render_template('add_contacts_to_group.html', group=group, contacts=contacts, group_members=group_members)
 
 @app.route('/new_subgroup', methods=['GET', 'POST'])
 @login_required
@@ -129,31 +158,38 @@ def new_subgroup():
     if request.method == 'POST':
         name = request.form.get('name')
         parent_group_id = request.form.get('parent_group')
-        
+
         if not name:
             flash('Подгруппанын аты бош боло албайт', 'danger')
             return redirect(url_for('new_subgroup'))
-        
-        # Жөнөкөйлөтүү үчүн биз подгруппаны жөнөкөй группа катары түзөбүз
+
         group = Group(name=name, creator_id=current_user.id)
         group.members.append(current_user)
         db.session.add(group)
         db.session.commit()
-        
+
         flash('Жаңы подгруппа түзүлдү!', 'success')
         return redirect(url_for('group_info', group_id=group.id))
-    
+
     groups = current_user.groups
     return render_template('new_subgroup.html', groups=groups)
 
-@app.route('/group/<int:group_id>')
+@app.route('/group/<int:group_id>', methods=['GET', 'POST'])
 @login_required
 def group_info(group_id):
     group = Group.query.get_or_404(group_id)
     members = group.members.all()
+
+    if request.method == 'POST':
+        new_name = request.form.get('group_name')
+        if new_name and new_name != group.name:
+            group.name = new_name
+            db.session.commit()
+            flash('Группанын аты ийгиликтүү өзгөртүлдү!', 'success')
+            return redirect(url_for('group_info', group_id=group.id))
+
     return render_template('group_info.html', group=group, members=members)
 
-# API для билдирүүлөрдү жөнөтүү жана алуу
 @app.route('/api/send_message', methods=['POST'])
 @login_required
 def send_message():
@@ -161,23 +197,23 @@ def send_message():
     content = data.get('content')
     recipient_id = data.get('recipient_id')
     group_id = data.get('group_id')
-    
+
     if not content:
         return jsonify({'error': 'Билдирүү бош боло албайт'}), 400
-    
+
     message = Message(content=content, sender_id=current_user.id)
-    message.created_at = datetime.utcnow() + timedelta(hours=12)  # Set time to UTC+6
-    
+    message.created_at = datetime.utcnow() + timedelta(hours=6)  # Set time to UTC+6
+
     if recipient_id:
         message.recipient_id = recipient_id
     elif group_id:
         message.group_id = group_id
     else:
         return jsonify({'error': 'Алуучу же группа көрсөтүлүшү керек'}), 400
-    
+
     db.session.add(message)
     db.session.commit()
-    
+
     return jsonify({'message': 'Билдирүү жөнөтүлдү', 'message_id': message.id}), 200
 
 @app.route('/api/get_messages', methods=['GET'])
@@ -185,19 +221,17 @@ def send_message():
 def get_messages():
     contact_id = request.args.get('contact_id')
     group_id = request.args.get('group_id')
-    
+
     if contact_id:
-        # Жеке билдирүүлөр
         sent_messages = Message.query.filter_by(sender_id=current_user.id, recipient_id=contact_id).all()
         received_messages = Message.query.filter_by(sender_id=contact_id, recipient_id=current_user.id).all()
         messages = sent_messages + received_messages
         messages.sort(key=lambda x: x.created_at)
     elif group_id:
-        # Группадагы билдирүүлөр
         messages = Message.query.filter_by(group_id=group_id).order_by(Message.created_at).all()
     else:
         return jsonify({'error': 'Контакт же группа ID көрсөтүлүшү керек'}), 400
-    
+
     messages_json = []
     for msg in messages:
         messages_json.append({
@@ -206,64 +240,134 @@ def get_messages():
             'sender_id': msg.sender_id,
             'sender_name': User.query.get(msg.sender_id).username,
             'is_mine': msg.sender_id == current_user.id,
-            'created_at': (msg.created_at - timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S'),  # Convert back to UTC
+            'created_at': (msg.created_at - timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S'),
             'is_read': msg.is_read
         })
-    
+
     return jsonify({'messages': messages_json}), 200
 
-@app.route('/api/delete_contact/<int:contact_id>', methods=['DELETE'])
-@login_required
-def delete_contact(contact_id):
-    contact = User.query.get(contact_id)
-    if not contact or not current_user.is_contact(contact):
-        return jsonify({'success': False, 'error': 'Контакт табылган жок'}), 404
-
-    current_user.remove_contact(contact)
+@app.route('/api/create_group', methods=['POST'])
+def create_group():
+    data = request.get_json()
+    name = data.get('name')
+    group = Group(name=name, creator_id=current_user.id)
+    group.members.append(current_user)
+    db.session.add(group)
     db.session.commit()
-    return jsonify({'success': True}), 200
+    return jsonify({'success': True})
 
-@app.route('/api/delete_group/<int:group_id>', methods=['DELETE'])
-@login_required
-def delete_group(group_id):
+@app.route('/api/create_contact', methods=['POST'])
+def create_contact():
+    data = request.get_json()
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    email = data.get('email')
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'Колдонуучу табылган жок'}), 404
+    current_user.add_contact(user)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/leave_group', methods=['POST'])
+def leave_group():
+    group_id = request.args.get('group_id')
     group = Group.query.get(group_id)
-    if not group or current_user not in group.members:
-        return jsonify({'success': False, 'error': 'Группа табылган жок'}), 404
+    if not group:
+        return jsonify({'error': 'Группа табылган жок'}), 404
 
+    # Remove the user from the group
     group.members.remove(current_user)
-    if not group.members:  # If no members remain, delete the group
+    db.session.commit()
+
+    # Remove the group if it has no members left
+    if not group.members:
+        Message.query.filter_by(group_id=group.id).delete()
         db.session.delete(group)
-    db.session.commit()
-    return jsonify({'success': True}), 200
+        db.session.commit()
 
-@app.route('/api/edit_contact_name/<int:contact_id>', methods=['PUT'])
+    return jsonify({'success': True})
+
+@app.route('/contact/<int:contact_id>', methods=['GET', 'POST'])
 @login_required
-def edit_contact_name(contact_id):
+def contact_info(contact_id):
+    # Контактты базадан алабыз
+    contact = User.query.get_or_404(contact_id)
+
+    # Текшерүү - бул контакт колдонуучунун контактыбы
+    contact_exists = False
+    for user_contact in current_user.contacts_list:
+        if user_contact.id == contact.id:
+            contact_exists = True
+            break
+
+    if not contact_exists:
+        flash('Бул сиздин контактыңыз эмес', 'danger')
+        return redirect(url_for('chat'))
+
+    if request.method == 'POST':
+        new_name = request.form.get('contact_name')
+        if new_name and new_name != contact.username:
+            contact.username = new_name
+            db.session.commit()
+            flash('Контакттын аты ийгиликтүү өзгөртүлдү!', 'success')
+            return redirect(url_for('contact_info', contact_id=contact.id))
+
+    return render_template('contact_info.html', contact=contact)
+
+@app.route('/api/delete_contact', methods=['POST'])
+@login_required
+def delete_contact():
+    contact_id = request.args.get('contact_id')
     contact = User.query.get(contact_id)
-    if not contact or not current_user.is_contact(contact):
-        return jsonify({'success': False, 'error': 'Контакт табылган жок'}), 404
+    if not contact:
+        return jsonify({'error': 'Контакт табылган жок'}), 404
 
-    data = request.json
-    new_name = data.get('name')
-    if not new_name:
-        return jsonify({'success': False, 'error': 'Жаңы атын киргизиңиз'}), 400
+    # Текшерүү - бул контакт колдонуучунун контактыбы
+    contact_exists = False
+    for user_contact in current_user.contacts_list:
+        if user_contact.id == contact.id:
+            contact_exists = True
+            break
 
-    contact.username = new_name
+    if not contact_exists:
+        return jsonify({'error': 'Бул сиздин контактыңыз эмес'}), 400
+
+    current_user.contacts_list.remove(contact)
     db.session.commit()
-    return jsonify({'success': True}), 200
 
-@app.route('/api/edit_group_name/<int:group_id>', methods=['PUT'])
-@login_required
-def edit_group_name(group_id):
+    return jsonify({'success': True})
+
+@app.route('/api/delete_group', methods=['DELETE'])
+def delete_group_api():
+    group_id = request.args.get('group_id')
     group = Group.query.get(group_id)
-    if not group or current_user not in group.members:
-        return jsonify({'success': False, 'error': 'Группа табылган жок'}), 404
+    if not group:
+        return jsonify({'error': 'Группа табылган жок'}), 404
 
-    data = request.json
-    new_name = data.get('name')
-    if not new_name:
-        return jsonify({'success': False, 'error': 'Жаңы атын киргизиңиз'}), 400
-
-    group.name = new_name
+    Message.query.filter_by(group_id=group.id).delete()
+    db.session.delete(group)
     db.session.commit()
-    return jsonify({'success': True}), 200
+
+    return jsonify({'success': True})
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('Файл жүктөө кабыл албайт', 'danger')
+            return redirect(url_for('profile'))
+        file = request.files['file']
+        if file.filename == '':
+            flash('Файл тандалган эмес', 'danger')
+            return redirect(url_for('profile'))
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            current_user.profile_pic = filename
+            db.session.commit()
+            flash('Профильди ийгиликтүү өзгөртүлдү!', 'success')
+            return redirect(url_for('profile'))
+
+    return render_template('profile.html')

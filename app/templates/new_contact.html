@@ -3,81 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Жаңы контакт кошуу</title>
+    <title>Жаңы контакт</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
+            background-color: #2caa54; /* Фонду көк түскө өзгөртүлдү */
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            margin: 0; /* Фондун четтерин жоюу */
         }
         .container {
-            background-color: white;
+            background-color: #719EE1; /* Контейнерди ак түскө өзгөртүлдү */
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 400px;
+            width: 300px;
         }
-        h1 {
-            text-align: center;
-            color: #333;
+        .container h2 {
+            margin-bottom: 20px;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"] {
+        .container input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
+        .container button {
+            width: 45%; /* Кнопкалардын кеңдигин өзгөртүү */
+            padding: 10px;
+            background-color: #D9D9D9; /* Кнопкаларды серый түскө өзгөртүлдү */
+            color: black; /* Кнопкалардын текстин кара түскө өзгөртүлдү */
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            width: 100%;
+            margin-top: 10px;
         }
-        button:hover {
-            background-color: #45a049;
+        .container button:hover {
+            background-color: #e0e0e0; /* Кнопкалардын hover стилин өзгөртүлдү */
         }
-        .back-link {
-            text-align: center;
-            margin-top: 15px;
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px; /* Кнопкалардын арасындагы аралык */
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Жаңы контакт кошуу</h1>
-        <form method="POST" action="{{ url_for('new_contact') }}">
-            <div class="form-group">
-                <label for="name">Аты-жөнү:</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email">
-            </div>
-            <button type="submit">Сактоо</button>
-        </form>
-        <div class="back-link">
-            <a href="{{ url_for('chat') }}">Артка кайтуу</a>
+        <h2>Жаңы контакт</h2>
+        <input type="text" id="firstName" placeholder="Аты">
+        <input type="email" id="email" placeholder="Электрондук почта">
+        <div class="button-container">
+            <button onclick="cancelContact()">Жокко чыгаруу</button>
+            <button onclick="createContact()">Сактоо</button>
         </div>
     </div>
+
+    <script>
+        function createContact() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!firstName || !lastName || !email) {
+                alert('Бардык маалыматтарды толтуруңуз!');
+                return;
+            }
+
+            fetch('/api/create_contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ first_name: firstName, last_name: lastName, email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Контакт успешно добавлен!');
+                    window.location.href = '/chat';
+                } else {
+                    alert('Ошибка при добавлении контакта: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при отправке запроса:', error);
+            });
+        }
+
+        function cancelContact() {
+            window.location.href = '/chat';
+        }
+    </script>
 </body>
 </html>

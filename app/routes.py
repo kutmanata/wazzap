@@ -592,3 +592,61 @@ def profile():
             return redirect(url_for('profile'))
 
     return render_template('profile.html')
+
+@app.route('/api/group_members', methods=['GET'])
+@login_required
+def get_group_members():
+    group_id = request.args.get('group_id')
+    
+    if not group_id:
+        return jsonify({'error': 'Не указан ID группы'}), 400
+    
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Группа не найдена'}), 404
+    
+    # Проверяем, является ли пользователь участником группы
+    if current_user not in group.members.all():
+        return jsonify({'error': 'Вы не являетесь участником этой группы'}), 403
+    
+    members = []
+    for member in group.members:
+        members.append({
+            'id': member.id,
+            'username': member.username,
+            'email': member.email,
+            'first_name': member.first_name,
+            'last_name': member.last_name
+        })
+    
+    return jsonify({
+        'success': True,
+        'creator_id': group.creator_id,
+        'members': members
+    }), 200
+
+@app.route('/api/update_group', methods=['POST'])
+@login_required
+def update_group():
+    data = request.json
+    group_id = data.get('group_id')
+    name = data.get('name')
+    
+    if not group_id or not name:
+        return jsonify({'error': 'Не указан ID группы или новое название'}), 400
+    
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Группа не найдена'}), 404
+    
+    # Только создатель может изменять название группы
+    if group.creator_id != current_user.id:
+        return jsonify({'error': 'Только создатель группы может изменять название'}), 403
+    
+    group.name = name
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Название группы успешно обновлено'
+    }), 200

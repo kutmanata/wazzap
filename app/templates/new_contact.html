@@ -65,9 +65,35 @@
             width: 48%;
         }
         
-        /* Скрываем уведомления при разлогине */
-        .alert {
-            display: none;
+        /* Стили для уведомлений */
+        .flash-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .flash-message {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .flash-danger {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .flash-success {
+            border-left: 4px solid #28a745;
+        }
+        
+        .flash-warning {
+            border-left: 4px solid #ffc107;
         }
 
         @media (max-width: 480px) {
@@ -78,6 +104,17 @@
     </style>
 </head>
 <body>
+    <!-- Контейнер для flash-сообщений -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
     <h1>New contact</h1>
     
     <div class="form-container">
@@ -86,6 +123,9 @@
                 <input type="text" id="first_name" name="first_name" placeholder="First Name">
             </div>
             
+            <div class="form-group">
+                <input type="text" id="last_name" name="last_name" placeholder="Last Name">
+            </div>
             
             <div class="form-group">
                 <input type="email" id="email" name="email" placeholder="Email">
@@ -98,16 +138,18 @@
         </form>
     </div>
     
-    <!-- JavaScript для работы с уведомлениями -->
     <script>
-        // Если есть сообщения об ошибках, отобразим их через alert
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    alert('{{ message }}');
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        // Автоматическое скрытие flash-сообщений через 5 секунд
+        setTimeout(function() {
+            var flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 0.5s';
+                setTimeout(function() {
+                    message.style.display = 'none';
+                }, 500);
+            });
+        }, 5000);
     </script>
 </body>
 </html>

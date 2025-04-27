@@ -59,7 +59,15 @@
             <ul id="contactList">
                 {% for contact in contacts %}
                     <li>
-                        <span>{{ contact.first_name }} {{ contact.last_name }}</span>
+                        <span>
+                            {% if contact.username %}
+                                {{ contact.username }}
+                            {% elif contact.first_name or contact.last_name %}
+                                {{ contact.first_name or '' }} {{ contact.last_name or '' }}
+                            {% else %}
+                                {{ contact.email }}
+                            {% endif %}
+                        </span>
                         <input type="checkbox" name="contacts" value="{{ contact.id }}">
                     </li>
                 {% endfor %}

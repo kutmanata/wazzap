@@ -76,6 +76,31 @@ class User(db.Model, UserMixin):
         """Получить последнее сообщение в группе"""
         from app.models import Message
         return Message.query.filter_by(group_id=group_id).order_by(Message.created_at.desc()).first()
+    
+    def count_unread_messages(self, contact_id=None):
+        """Подсчет непрочитанных сообщений от конкретного пользователя или всего"""
+        query = Message.query.filter_by(recipient_id=self.id, is_read=False)
+        if contact_id:
+            return query.filter_by(sender_id=contact_id).count()
+        return query.count()
+    
+    def count_unread_group_messages(self, group_id=None):
+        """Подсчет непрочитанных сообщений в группе или во всех группах"""
+        # Получаем ID групп пользователя
+        group_ids = [group.id for group in self.groups]
+        
+        if not group_ids:
+            return 0
+        
+        query = Message.query.filter(
+            Message.group_id.in_(group_ids),
+            Message.sender_id != self.id,
+            Message.is_read == False
+        )
+        
+        if group_id:
+            return query.filter_by(group_id=group_id).count()
+        return query.count()
 
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -89,6 +114,14 @@ class Group(db.Model):
     def get_last_message(self):
         """Получить последнее сообщение в группе"""
         return Message.query.filter_by(group_id=self.id).order_by(Message.created_at.desc()).first()
+    
+    def mark_messages_as_read(self, user_id):
+        """Отметить все сообщения в группе как прочитанные для пользователя"""
+        messages = Message.query.filter_by(group_id=self.id, is_read=False).all()
+        for message in messages:
+            if message.sender_id != user_id:
+                message.is_read = True
+        return len(messages)
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -100,3 +133,8 @@ class Message(db.Model):
     is_read = db.Column(db.Boolean, default=False)
     
     recipient = db.relationship('User', foreign_keys=[recipient_id])
+    
+    def mark_as_read(self):
+        """Отметить сообщение как прочитанное"""
+        self.is_read = True
+        return self

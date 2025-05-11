@@ -256,29 +256,28 @@
 <body>
     <div class="sidebar">
         <div class="header">
-            <h2>Chat Admin</h2>
+            <h2>Чат Администратор</h2>
         </div>
         <a href="{{ url_for('admin') }}" class="nav-item active">
-            <i class="fas fa-tachometer-alt"></i> Main
+            <i class="fas fa-tachometer-alt"></i> Башкы
         </a>
         <a href="{{ url_for('admin_users') }}" class="nav-item">
-            <i class="fas fa-users"></i> Users
+            <i class="fas fa-users"></i> Колдонуучулар
         </a>
-        <a href="{{ url_for('admin_chats') }}" class="nav-item">
-            <i class="fas fa-comments"></i> Chats
+        <a href="{{ url_for('admin_chats') }}" class="nav-item active">
+            <i class="fas fa-comments"></i> Чаттар
         </a>
-
-        <a href="#" class="nav-item">
-            <i class="fas fa-user-friends"></i> Groups
+        <a href="{{ url_for('admin_groups') }}" class="nav-item">
+            <i class="fas fa-user-friends"></i> Топтор
         </a>
         <a href="{{ url_for('chat') }}" class="nav-item">
-            <i class="fas fa-arrow-left"></i> Return to Chat
+            <i class="fas fa-arrow-left"></i> Чатка кайтуу
         </a>
     </div>
 
     <div class="main-content">
         <div class="dashboard-header">
-            <h1>Chats Management</h1>
+            <h1>Чаттар башкаруу</h1>
         </div>
 
         <div class="stats-container">
@@ -287,21 +286,21 @@
                     <i class="fas fa-comment"></i>
                 </div>
                 <h2>{{ total_direct_chats }}</h2>
-                <p>Direct Chats</p>
+                <p>Жеке чаттар</p>
             </div>
             <div class="stat-card">
                 <div class="icon">
                     <i class="fas fa-users"></i>
                 </div>
                 <h2>{{ total_group_chats }}</h2>
-                <p>Group Chats</p>
+                <p>Топтук чаттар</p>
             </div>
             <div class="stat-card">
                 <div class="icon">
                     <i class="fas fa-comment-dots"></i>
                 </div>
                 <h2>{{ total_messages }}</h2>
-                <p>Total Messages</p>
+                <p>Бардык билдирүүлөр</p>
             </div>
         </div>
 
@@ -309,7 +308,7 @@
 
         <div class="chats-container">
             <div class="search-container">
-                <input type="text" id="searchChats" placeholder="Search chats...">
+                <input type="text" id="searchChats" placeholder="Чаттарды издөө...">
             </div>
             <div class="chat-list" id="all-chats">
                 {% for chat in all_chats %}
@@ -324,7 +323,7 @@
                                     {% if chat.last_message %}
                                         {{ chat.last_message.content[:50] + '...' if chat.last_message.content|length > 50 else chat.last_message.content }}
                                     {% else %}
-                                        No messages yet
+                                        Билдирүүлөр жок
                                     {% endif %}
                                 </div>
                             </div>
@@ -344,7 +343,7 @@
                                     {% if chat.last_message %}
                                         {{ chat.last_message.content[:50] + '...' if chat.last_message.content|length > 50 else chat.last_message.content }}
                                     {% else %}
-                                        No messages yet
+                                        Билдирүүлөр жок
                                     {% endif %}
                                 </div>
                             </div>
@@ -371,7 +370,7 @@
                                 {% if chat.last_message %}
                                     {{ chat.last_message.content[:50] + '...' if chat.last_message.content|length > 50 else chat.last_message.content }}
                                 {% else %}
-                                    No messages yet
+                                    Билдирүүлөр жок
                                 {% endif %}
                             </div>
                         </div>
@@ -397,7 +396,7 @@
                                 {% if chat.last_message %}
                                     {{ chat.last_message.content[:50] + '...' if chat.last_message.content|length > 50 else chat.last_message.content }}
                                 {% else %}
-                                    No messages yet
+                                    Билдирүүлөр жок
                                 {% endif %}
                             </div>
                         </div>

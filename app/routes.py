@@ -854,3 +854,101 @@ def admin_chat_view(dialog_id):
         except (ValueError, IndexError):
             flash('Неверный идентификатор диалога', 'error')
             return redirect(url_for('admin_chats'))
+
+@app.route('/admin/groups')
+def admin_groups():
+    # Получаем все группы из базы данных
+    groups = Group.query.order_by(Group.created_at.desc()).all()
+    
+    # Собираем информацию по каждой группе
+    group_data = []
+    for group in groups:
+        # Получаем создателя группы
+        creator = User.query.get(group.creator_id)
+        
+        # Считаем количество участников
+        members_count = group.members.count()
+        
+        # Считаем количество сообщений
+        message_count = Message.query.filter_by(group_id=group.id).count()
+        
+        # Получаем последнюю активность
+        last_message = Message.query.filter_by(group_id=group.id).order_by(Message.created_at.desc()).first()
+        
+        # Собираем данные группы
+        group_data.append({
+            'group': group,
+            'creator': creator,
+            'members_count': members_count,
+            'message_count': message_count,
+            'last_activity': last_message.created_at if last_message else group.created_at
+        })
+    
+    # Сортируем по дате последней активности
+    group_data.sort(key=lambda x: x['last_activity'], reverse=True)
+    
+    # Общая статистика для верхних карточек
+    total_groups = len(groups)
+    total_members = sum(data['members_count'] for data in group_data)
+    total_messages = sum(data['message_count'] for data in group_data)
+    
+    return render_template(
+        'admin_groups.html',
+        group_data=group_data,
+        total_groups=total_groups,
+        total_members=total_members,
+        total_messages=total_messages
+    )
+
+@app.route('/admin/groups/<int:group_id>')
+def admin_group_view(group_id):
+    # Получаем группу из БД
+    group = Group.query.get_or_404(group_id)
+    
+    # Получаем информацию о создателе
+    creator = User.query.get(group.creator_id)
+    
+    # Получаем список участников
+    members = group.members.all()
+    
+    # Получаем сообщения группы
+    messages = Message.query.filter_by(group_id=group.id).order_by(Message.created_at).all()
+    
+    # Статистика сообщений
+    messages_count = len(messages)
+    messages_per_day = {}
+    
+    for message in messages:
+        day = message.created_at.date()
+        if day in messages_per_day:
+            messages_per_day[day] += 1
+        else:
+            messages_per_day[day] = 1
+    
+    # Топ 5 активных участников
+    member_activity = {}
+    for message in messages:
+        sender_id = message.sender_id
+        if sender_id in member_activity:
+            member_activity[sender_id] += 1
+        else:
+            member_activity[sender_id] = 1
+    
+    top_members = []
+    for member_id, count in sorted(member_activity.items(), key=lambda x: x[1], reverse=True)[:5]:
+        member = User.query.get(member_id)
+        if member:
+            top_members.append({
+                'user': member,
+                'message_count': count
+            })
+    
+    return render_template(
+        'admin_group_view.html',
+        group=group,
+        creator=creator,
+        members=members,
+        messages=messages,
+        messages_count=messages_count,
+        top_members=top_members
+    )

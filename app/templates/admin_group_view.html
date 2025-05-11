@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Admin - Group Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f1f1f1;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Стили для боковой панели */
+        .sidebar {
+            width: 250px;
+            background-color: #4a5664;
+            color: white;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .header {
+            padding: 15px;
+            background-color: #3c4653;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            font-size: 18px;
+        }
+
+        .nav-item {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background-color: #3c4653;
+        }
+
+        .nav-item i {
+            margin-right: 10px;
+        }
+
+        .nav-item.active {
+            background-color: #3c4653;
+            border-left: 3px solid #4285f4;
+        }
+
+        /* Стили для основного содержимого */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Заголовок группы */
+        .group-header {
+            padding: 15px 20px;
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .group-title {
+            display: flex;
+            align-items: center;
+        }
+
+        .group-title h2 {
+            font-size: 18px;
+            margin-left: 15px;
+        }
+
+        .group-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: #e3f2fd;
+            color: #4285f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .back-btn {
+            padding: 8px 15px;
+            background-color: #f1f1f1;
+            color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .back-btn i {
+            margin-right: 8px;
+        }
+
+        /* Основной контент группы */
+        .group-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Левая колонка - информация о группе и участники */
+        .group-info {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .info-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .info-item {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .info-label {
+            width: 120px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-value {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        /* Список участников */
+        .members-list {
+            list-style: none;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .member-item:last-child {
+            border-bottom: none;
+        }
+
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #eee;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .member-details {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .member-email {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .admin-badge {
+            background-color: #e3f2fd;
+            color: #4285f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        /* Правая колонка - сообщения */
+        .messages-panel {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .messages-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .messages-list {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #eee;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .message-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+
+        .message-sender {
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        .message-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .message-text {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* Статистика сообщений */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .stat-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4285f4;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <h2>Чат Администратор</h2>
+        </div>
+        <a href="{{ url_for('admin') }}" class="nav-item">
+            <i class="fas fa-tachometer-alt"></i> Башкы
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item">
+            <i class="fas fa-users"></i> Колдонуучулар
+        </a>
+        <a href="{{ url_for('admin_chats') }}" class="nav-item">
+            <i class="fas fa-comments"></i> Чаттар
+        </a>
+        <a href="{{ url_for('admin_groups') }}" class="nav-item active">
+            <i class="fas fa-user-friends"></i> Топтор
+        </a>
+        <a href="{{ url_for('chat') }}" class="nav-item">
+            <i class="fas fa-arrow-left"></i> Чатка кайтуу
+        </a>
+    </div>
+
+    <div class="main-content">
+        <div class="group-header">
+            <div class="group-title">
+                <div class="group-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h2>{{ group.name }}</h2>
+            </div>
+            <a href="{{ url_for('admin_groups') }}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Топторго кайтуу
+            </a>
+        </div>
+
+        <div class="group-content">
+            <div class="group-info">
+                <!-- Основная информация о группе -->
+                <div class="info-section">
+                    <div class="section-title">Топ маалыматы</div>
+                    <div class="info-item">
+                        <div class="info-label">Аты:</div>
+                        <div class="info-value">{{ group.name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Түзүлгөн:</div>
+                        <div class="info-value">{{ group.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Түзүүчү:</div>
+                        <div class="info-value">{{ creator.username }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Мүчөлөр:</div>
+                        <div class="info-value">{{ members|length }}</div>
+                    </div>
+                </div>
+
+                <!-- Статистика группы -->
+                <div class="info-section">
+                    <div class="section-title">Топ статистикасы</div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value">{{ messages_count }}</div>
+                            <div class="stat-label">Бардык билдирүүлөр</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{{ members|length }}</div>
+                            <div class="stat-label">Мүчөлөр</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{{ messages_count // (members|length) if members|length > 0 else 0 }}</div>
+                            <div class="stat-label">Орт. билдирүү/мүчө</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Список наиболее активных участников -->
+                <div class="info-section">
+                    <div class="section-title">Эң активдүү мүчөлөр</div>
+                    {% for member_data in top_members %}
+                        <div class="member-item">
+                            <div class="member-avatar">{{ member_data.user.username[0]|upper }}</div>
+                            <div class="member-details">
+                                <div class="member-name">{{ member_data.user.username }}</div>
+                                <div class="member-email">{{ member_data.user.email }}</div>
+                            </div>
+                            <div>{{ member_data.message_count }} билдирүү</div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Список всех участников группы -->
+                <div class="info-section">
+                    <div class="section-title">Бардык мүчөлөр</div>
+                    <ul class="members-list">
+                        {% for member in members %}
+                            <li class="member-item">
+                                <div class="member-avatar">{{ member.username[0]|upper }}</div>
+                                <div class="member-details">
+                                    <div class="member-name">
+                                        {{ member.username }}
+                                        {% if member.id == creator.id %}
+                                            <span class="admin-badge">Админ</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="member-email">{{ member.email }}</div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="messages-panel">
+                <div class="messages-header">
+                    Топ билдирүүлөрү ({{ messages|length }})
+                </div>
+                <div class="messages-list">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="message">
+                                <div class="message-avatar">
+                                    {{ message.sender.username[0]|upper }}
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-header">
+                                        <div class="message-sender">{{ message.sender.username }}</div>
+                                        <div class="message-time">{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                                    </div>
+                                    <div class="message-text">{{ message.content }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align: center; color: #999; padding: 50px 0;">
+                            Бул топто билдирүүлөр жок.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

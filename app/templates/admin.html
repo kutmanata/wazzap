@@ -262,30 +262,29 @@
 <body>
     <div class="sidebar">
         <div class="header">
-            <h2>Chat Admin</h2>
+            <h2>Чат Администратор</h2>
         </div>
         <a href="{{ url_for('admin') }}" class="nav-item active">
-            <i class="fas fa-tachometer-alt"></i> Main
+            <i class="fas fa-tachometer-alt"></i> Башкы
         </a>
         <a href="{{ url_for('admin_users') }}" class="nav-item">
-            <i class="fas fa-users"></i> Users
+            <i class="fas fa-users"></i> Колдонуучулар
         </a>
         <a href="{{ url_for('admin_chats') }}" class="nav-item">
-            <i class="fas fa-comments"></i> Chats
+            <i class="fas fa-comments"></i> Чаттар
         </a>
-
-        <a href="#" class="nav-item">
-            <i class="fas fa-user-friends"></i> Groups
+        <a href="{{ url_for('admin_groups') }}" class="nav-item">
+            <i class="fas fa-user-friends"></i> Топтор
         </a>
         <a href="{{ url_for('chat') }}" class="nav-item">
-            <i class="fas fa-arrow-left"></i> Return to Chat
+            <i class="fas fa-arrow-left"></i> Чатка кайтуу
         </a>
 
     </div>
 
     <div class="main-content">
         <div class="dashboard-header">
-            <h1>Main</h1>
+            <h1>Башкы</h1>
 
         </div>
 
@@ -295,26 +294,26 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <h2>{{ total_users }}</h2>
-                <p>Total Users</p>
+                <p>Бардык колдонуучулар</p>
             </div>
             <div class="stat-card">
                 <div class="icon">
                     <i class="fas fa-comment-alt"></i>
                 </div>
                 <h2>{{ total_messages }}</h2>
-                <p>Total Messages</p>
+                <p>Бардык билдирүүлөр</p>
             </div>
             <div class="stat-card">
                 <div class="icon">
                     <i class="fas fa-comment"></i>
                 </div>
                 <h2>{{ messages_today }}</h2>
-                <p>Messages Today</p>
+                <p>Бүгүнкү билдирүүлөр</p>
             </div>
         </div>
 
         <div class="activity-container">
-            <div class="activity-header">Recent Activity</div>
+            <div class="activity-header">Акыркы активдүүлүк</div>
             {% for activity in recent_activity %}
                 <div class="activity-item">
                     <div class="activity-icon">
@@ -328,7 +327,7 @@
                         {{ activity.details }}
                     </div>
                     <div class="activity-time">
-                        1 день назад
+                        1 күн мурун
                     </div>
                 </div>
             {% endfor %}

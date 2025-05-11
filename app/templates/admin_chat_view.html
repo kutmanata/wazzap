@@ -260,23 +260,22 @@
 <body>
     <div class="sidebar">
         <div class="header">
-            <h2>Chat Admin</h2>
+            <h2>Чат Администратор</h2>
         </div>
         <a href="{{ url_for('admin') }}" class="nav-item active">
-            <i class="fas fa-tachometer-alt"></i> Main
+            <i class="fas fa-tachometer-alt"></i> Башкы
         </a>
         <a href="{{ url_for('admin_users') }}" class="nav-item">
-            <i class="fas fa-users"></i> Users
+            <i class="fas fa-users"></i> Колдонуучулар
         </a>
-        <a href="{{ url_for('admin_chats') }}" class="nav-item">
-            <i class="fas fa-comments"></i> Chats
+        <a href="{{ url_for('admin_chats') }}" class="nav-item active">
+            <i class="fas fa-comments"></i> Чаттар
         </a>
-
-        <a href="#" class="nav-item">
-            <i class="fas fa-user-friends"></i> Groups
+        <a href="{{ url_for('admin_groups') }}" class="nav-item">
+            <i class="fas fa-user-friends"></i> Топтор
         </a>
         <a href="{{ url_for('chat') }}" class="nav-item">
-            <i class="fas fa-arrow-left"></i> Return to Chat
+            <i class="fas fa-arrow-left"></i> Чатка кайтуу
         </a>
     </div>
 
@@ -296,7 +295,7 @@
                 {% endif %}
             </div>
             <a href="{{ url_for('admin_chats') }}" class="back-btn">
-                <i class="fas fa-arrow-left"></i> Back to chats
+                <i class="fas fa-arrow-left"></i> Чаттарга кайтуу
             </a>
         </div>
 
@@ -314,19 +313,19 @@
                 </div>
             {% else %}
                 <div style="text-align: center; color: #999; padding: 50px 0;">
-                    No messages in this chat yet.
+                    Бул чатта билдирүүлөр жок.
                 </div>
             {% endfor %}
         </div>
 
         <div class="chat-info-panel">
             <div class="chat-info-header">
-                Chat Information
+                Чат маалыматы
             </div>
             
             {% if chat_type == 'direct' %}
                 <div class="chat-info-section">
-                    <h3>Participants</h3>
+                    <h3>Катышуучулар</h3>
                     <ul class="chat-members">
                         <li class="chat-member">
                             <div class="member-avatar">{{ user1.username[0]|upper }}</div>
@@ -340,7 +339,7 @@
                 </div>
             {% else %}
                 <div class="chat-info-section">
-                    <h3>Group Members</h3>
+                    <h3>Топ мүчөлөрү</h3>
                     <ul class="chat-members">
                         {% for member in group.members %}
                             <li class="chat-member">
@@ -354,23 +353,23 @@
             
             <div class="chat-stats">
                 <div class="stat-item">
-                    <span class="stat-label">Total Messages:</span>
+                    <span class="stat-label">Бардык билдирүүлөр:</span>
                     <span class="stat-value">{{ messages|length }}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Created:</span>
+                    <span class="stat-label">Түзүлгөн:</span>
                     <span class="stat-value">
                         {% if chat_type == 'group' %}
                             {{ group.created_at.strftime('%d.%m.%Y') }}
                         {% else %}
-                            {{ messages[0].created_at.strftime('%d.%m.%Y') if messages else 'N/A' }}
+                            {{ messages[0].created_at.strftime('%d.%m.%Y') if messages else 'Жок' }}
                         {% endif %}
                     </span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Last Activity:</span>
+                    <span class="stat-label">Акыркы активдүүлүк:</span>
                     <span class="stat-value">
-                        {{ messages[-1].created_at.strftime('%d.%m.%Y %H:%M') if messages else 'N/A' }}
+                        {{ messages[-1].created_at.strftime('%d.%m.%Y %H:%M') if messages else 'Жок' }}
                     </span>
                 </div>
             </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Admin - Users</title>
+    <title>Chat Admin - Groups</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         * {
@@ -125,15 +125,15 @@
             margin: 0;
         }
 
-        /* Стили для таблицы пользователей */
-        .users-container {
+        /* Стили для таблицы групп */
+        .groups-container {
             background-color: #fff;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .users-header {
+        .groups-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -142,25 +142,9 @@
             border-bottom: 1px solid #eee;
         }
 
-        .users-header h2 {
+        .groups-header h2 {
             font-size: 18px;
             color: #333;
-        }
-
-        .add-user-btn {
-            padding: 10px 15px;
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-        }
-
-        .add-user-btn i {
-            margin-right: 8px;
         }
 
         .search-container {
@@ -190,12 +174,12 @@
             cursor: pointer;
         }
 
-        .users-table {
+        .groups-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .users-table th {
+        .groups-table th {
             text-align: left;
             padding: 15px;
             background-color: #f8f9fa;
@@ -204,110 +188,69 @@
             color: #555;
         }
 
-        .users-table td {
+        .groups-table td {
             padding: 15px;
             border-bottom: 1px solid #eee;
             vertical-align: middle;
         }
 
-        .users-table tr:last-child td {
+        .groups-table tr:last-child td {
             border-bottom: none;
         }
 
-        .users-table tr:hover {
+        .groups-table tr:hover {
             background-color: #f8f9fa;
         }
 
-        .user-avatar {
+        .group-icon {
             width: 40px;
             height: 40px;
-            border-radius: 50%;
-            background-color: #e9ecef;
+            border-radius: 8px;
+            background-color: #e3f2fd;
+            color: #4285f4;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 10px;
-            color: #6c757d;
-            font-weight: bold;
+            font-size: 20px;
         }
 
-        .user-name-cell {
+        .group-name-cell {
             display: flex;
             align-items: center;
         }
 
-        .user-status {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .user-status.active {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-        }
-
-        .user-status.admin {
-            background-color: rgba(66, 133, 244, 0.1);
-            color: #4285f4;
-        }
-
-        .user-status.inactive {
-            background-color: rgba(108, 117, 125, 0.1);
-            color: #6c757d;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-            color: #6c757d;
-        }
-
-        .action-btn:hover {
-            background-color: #f8f9fa;
-        }
-
-        .action-btn.edit:hover {
-            color: #4285f4;
-        }
-
-        .action-btn.delete:hover {
-            color: #dc3545;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 25px;
-        }
-
-        .pagination a {
-            margin: 0 5px;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            color: #333;
-            text-decoration: none;
-        }
-
-        .pagination a.active {
+        .view-button {
+            padding: 6px 12px;
             background-color: #4285f4;
             color: white;
-            border-color: #4285f4;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
         }
 
-        .pagination a:hover:not(.active) {
-            background-color: #f1f1f1;
+        .view-button:hover {
+            background-color: #3367d6;
+        }
+
+        .creator-cell {
+            display: flex;
+            align-items: center;
+        }
+
+        .creator-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            color: #666;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -316,7 +259,7 @@
         <div class="header">
             <h2>Чат Администратор</h2>
         </div>
-        <a href="{{ url_for('admin') }}" class="nav-item active">
+        <a href="{{ url_for('admin') }}" class="nav-item">
             <i class="fas fa-tachometer-alt"></i> Башкы
         </a>
         <a href="{{ url_for('admin_users') }}" class="nav-item">
@@ -325,7 +268,7 @@
         <a href="{{ url_for('admin_chats') }}" class="nav-item">
             <i class="fas fa-comments"></i> Чаттар
         </a>
-        <a href="{{ url_for('admin_groups') }}" class="nav-item">
+        <a href="{{ url_for('admin_groups') }}" class="nav-item active">
             <i class="fas fa-user-friends"></i> Топтор
         </a>
         <a href="{{ url_for('chat') }}" class="nav-item">
@@ -335,91 +278,104 @@
 
     <div class="main-content">
         <div class="dashboard-header">
-            <h1>Колдонуучуларды башкаруу</h1>
+            <h1>Топторду башкаруу</h1>
         </div>
 
-        <!-- Статистика по пользователям -->
+        <!-- Статистика по группам -->
         <div class="stats-container">
+            <div class="stat-card">
+                <div class="icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <h2>{{ total_groups }}</h2>
+                <p>Бардык топтор</p>
+            </div>
             <div class="stat-card">
                 <div class="icon">
                     <i class="fas fa-users"></i>
                 </div>
-                <h2>{{ total_users }}</h2>
-                <p>Бардык колдонуучулар</p>
+                <h2>{{ total_members }}</h2>
+                <p>Бардык мүчөлөр</p>
             </div>
-
             <div class="stat-card">
                 <div class="icon">
-                    <i class="fas fa-user-shield"></i>
+                    <i class="fas fa-comment-alt"></i>
                 </div>
-                <h2>{{ admin_users }}</h2>
-                <p>Администраторлор</p>
+                <h2>{{ total_messages }}</h2>
+                <p>Топтордогу билдирүүлөр</p>
             </div>
         </div>
 
-        <div class="users-container">
-            <div class="users-header">
-                <h2>Бардык колдонуучулар</h2>
-
+        <div class="groups-container">
+            <div class="groups-header">
+                <h2>Бардык топтор</h2>
             </div>
             
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Колдонуучу аты же email боюнча издөө...">
+                <input type="text" id="searchInput" placeholder="Топторду издөө...">
                 <button><i class="fas fa-search"></i></button>
             </div>
             
-            <table class="users-table">
+            <table class="groups-table">
                 <thead>
                     <tr>
-                        <th>Колдонуучу</th>
-                        <th>Email</th>
-                        <th>Каттоо күнү</th>
-                        <th>Статус</th>
+                        <th>Топ</th>
+                        <th>Түзүүчү</th>
+                        <th>Мүчөлөр</th>
+                        <th>Билдирүүлөр</th>
+                        <th>Түзүлгөн</th>
+                        <th>Аракеттер</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for user in users %}
+                    {% for data in group_data %}
                     <tr>
-                        <td class="user-name-cell">
-                            <div class="user-avatar">
-                                {{ user.username[0]|upper }}
+                        <td class="group-name-cell">
+                            <div class="group-icon">
+                                <i class="fas fa-users"></i>
                             </div>
-                            {{ user.username }}
+                            {{ data.group.name }}
                         </td>
-                        <td>{{ user.email }}</td>
-                        <td>{{ user.created_at.strftime('%d.%m.%Y') }}</td>
-                        <td>
-                            {% if user.is_admin %}
-                                <span class="user-status admin">Админ</span>
+                        <td class="creator-cell">
+                            {% if data.creator %}
+                                <div class="creator-avatar">
+                                    {{ data.creator.username[0]|upper }}
+                                </div>
+                                {{ data.creator.username }}
                             {% else %}
-                                <span class="user-status active">Активдүү</span>
+                                Unknown
                             {% endif %}
                         </td>
-
+                        <td>{{ data.members_count }}</td>
+                        <td>{{ data.message_count }}</td>
+                        <td>{{ data.group.created_at.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_group_view', group_id=data.group.id) }}" class="view-button">
+                                Маалыматты көрүү
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            
-
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Логика для поиска пользователей
+            // Логика для поиска групп
             const searchInput = document.getElementById('searchInput');
-            const usersTable = document.querySelector('.users-table tbody');
-            const userRows = Array.from(usersTable.querySelectorAll('tr'));
+            const groupsTable = document.querySelector('.groups-table tbody');
+            const groupRows = Array.from(groupsTable.querySelectorAll('tr'));
             
             searchInput.addEventListener('keyup', function() {
                 const searchTerm = this.value.toLowerCase();
                 
-                userRows.forEach(row => {
-                    const username = row.querySelector('.user-name-cell').textContent.toLowerCase();
-                    const email = row.querySelectorAll('td')[1].textContent.toLowerCase();
+                groupRows.forEach(row => {
+                    const groupName = row.querySelector('.group-name-cell').textContent.toLowerCase();
+                    const creatorName = row.querySelector('.creator-cell').textContent.toLowerCase();
                     
-                    if (username.includes(searchTerm) || email.includes(searchTerm)) {
+                    if (groupName.includes(searchTerm) || creatorName.includes(searchTerm)) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';

@@ -5,154 +5,230 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Admin - Chats</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Nunito', sans-serif;
         }
 
         body {
-            background-color: #f1f1f1;
+            background: linear-gradient(135deg, #222831 0%, #393e46 100%);
             height: 100vh;
             display: flex;
             overflow: hidden;
+            color: #eeeeee;
         }
 
         /* Стили для боковой панели */
         .sidebar {
-            width: 250px;
-            background-color: #4a5664;
-            color: white;
+            width: 280px;
+            background: linear-gradient(135deg, #222831 0%, #30475e 100%);
             height: 100vh;
             overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding: 0 10px;
         }
 
         .header {
-            padding: 15px;
-            background-color: #3c4653;
+            padding: 20px 15px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
         }
 
         .header h2 {
-            font-size: 18px;
+            font-size: 22px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #f2a365;
         }
 
         .nav-item {
-            padding: 15px;
+            padding: 16px;
+            margin: 10px 0;
             display: flex;
             align-items: center;
-            color: white;
+            color: #eeeeee;
             text-decoration: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
 
-        .nav-item:hover {
-            background-color: #3c4653;
+        .nav-item:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 15px;
+            background: #30475e;
+            box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2),
+                        inset -3px -3px 5px rgba(255,255,255,0.1);
+            z-index: -1;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover:before {
+            opacity: 1;
         }
 
         .nav-item i {
-            margin-right: 10px;
+            margin-right: 15px;
+            font-size: 18px;
+            color: #f2a365;
         }
 
         .nav-item.active {
-            background-color: #3c4653;
-            border-left: 3px solid #4285f4;
+            color: #ffffff;
+        }
+
+        .nav-item.active:before {
+            opacity: 1;
+            background: linear-gradient(135deg, #f2a365 0%, #f96d00 100%);
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.2),
+                        -3px -3px 5px rgba(255,255,255,0.05);
+        }
+
+        .nav-item.active i {
+            color: #ffffff;
         }
 
         /* Стили для основного содержимого */
         .main-content {
             flex: 1;
-            padding: 20px;
+            padding: 30px;
             overflow-y: auto;
         }
 
         h1 {
-            margin-bottom: 20px;
-            color: #333;
+            margin-bottom: 30px;
+            color: #f2a365;
+            font-size: 28px;
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1:after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(90deg, #f2a365, transparent);
         }
 
         .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .dashboard-header h1 {
-            margin-bottom: 0;
+            margin-bottom: 30px;
         }
 
         /* Статистика верхние карточки */
         .stats-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
 
         .stat-card {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            width: calc(33.33% - 14px);
-            min-width: 200px;
+            background: #30475e;
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            box-shadow: 8px 8px 15px rgba(0,0,0,0.2),
+                        -8px -8px 15px rgba(255,255,255,0.05);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-card .icon {
-            font-size: 24px;
-            color: #4285f4;
-            margin-bottom: 15px;
-            width: 50px;
-            height: 50px;
-            background-color: rgba(66, 133, 244, 0.1);
-            border-radius: 8px;
+            font-size: 28px;
+            color: #f2a365;
+            margin-bottom: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: linear-gradient(135deg, #30475e 0%, #222831 100%);
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.2),
+                        -5px -5px 10px rgba(255,255,255,0.05);
         }
 
         .stat-card h2 {
-            font-size: 28px;
-            margin-bottom: 5px;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #ffffff;
         }
 
         .stat-card p {
-            color: #666;
+            color: #eeeeee;
             margin: 0;
+            font-size: 16px;
         }
 
-        /* Табы для переключения между разными типами чатов */
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .tab {
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .tab.active {
-            background-color: #4285f4;
-            color: white;
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #f2a365, #f96d00);
         }
 
         /* Стили для списка чатов */
         .chats-container {
-            background-color: #fff;
-            border-radius: 8px;
+            background: #30475e;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 8px 8px 15px rgba(0,0,0,0.2),
+                        -8px -8px 15px rgba(255,255,255,0.05);
+        }
+
+        .search-container {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+        }
+
+        .search-container input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 15px 0 0 15px;
+            background: #222831;
+            color: #eeeeee;
+            font-size: 15px;
+            outline: none;
+            box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2),
+                       inset -3px -3px 5px rgba(255,255,255,0.05);
+        }
+
+        .search-container input::placeholder {
+            color: rgba(238, 238, 238, 0.5);
         }
 
         .chat-list {
@@ -160,30 +236,34 @@
         }
         
         .chat-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex;
             align-items: center;
             text-decoration: none;
             color: inherit;
+            transition: all 0.3s ease;
         }
 
         .chat-item:hover {
-            background-color: #f9f9f9;
+            background: linear-gradient(90deg, rgba(242, 163, 101, 0.05) 0%, transparent 100%);
+            transform: translateX(5px);
         }
 
         .chat-avatar {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
-            background-color: #eee;
-            margin-right: 15px;
+            margin-right: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #666;
+            color: #f2a365;
             font-weight: bold;
             font-size: 18px;
+            background: linear-gradient(135deg, #30475e 0%, #222831 100%);
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.2),
+                        -5px -5px 10px rgba(255,255,255,0.05);
         }
 
         .chat-info {
@@ -192,13 +272,14 @@
         }
 
         .chat-name {
-            font-weight: bold;
+            font-weight: 700;
             margin-bottom: 5px;
             font-size: 16px;
+            color: #ffffff;
         }
 
         .chat-preview {
-            color: #666;
+            color: #aaaaaa;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -213,52 +294,66 @@
         }
 
         .chat-time {
-            color: #999;
-            font-size: 12px;
-            margin-bottom: 5px;
+            color: #f2a365;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
 
         .chat-count {
-            background-color: #4285f4;
+            background: linear-gradient(135deg, #f2a365 0%, #f96d00 100%);
             color: white;
-            border-radius: 12px;
-            padding: 2px 8px;
+            border-radius: 20px;
+            padding: 3px 10px;
             font-size: 12px;
-            font-weight: bold;
-            min-width: 25px;
+            font-weight: 700;
+            min-width: 30px;
             text-align: center;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.2);
         }
 
         .chat-group-avatar {
-            background-color: #e3f2fd;
-            color: #4285f4;
+            background: linear-gradient(135deg, #30475e 0%, #222831 100%);
+            color: #f2a365;
         }
 
-        .search-container {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+        /* Табы для переключения между разными типами чатов */
+        .tabs {
             display: flex;
+            margin-bottom: 20px;
+            background: #222831;
+            border-radius: 15px;
+            padding: 8px;
+            box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2),
+                       inset -3px -3px 5px rgba(255,255,255,0.05);
         }
 
-        .search-container input {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            outline: none;
+        .tab {
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
-        .search-container input:focus {
-            border-color: #4285f4;
+        .tab:hover {
+            background: rgba(242, 163, 101, 0.1);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #f2a365 0%, #f96d00 100%);
+            color: white;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.2);
         }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <div class="header">
-            <h2>Чат Администратор</h2>
+            <h2>Чат Башкаруу</h2>
         </div>
-        <a href="{{ url_for('admin') }}" class="nav-item active">
+        <a href="{{ url_for('admin') }}" class="nav-item">
             <i class="fas fa-tachometer-alt"></i> Башкы
         </a>
         <a href="{{ url_for('admin_users') }}" class="nav-item">
@@ -304,7 +399,11 @@
             </div>
         </div>
 
-
+        <div class="tabs">
+            <div class="tab active" data-tab="all">Бардык чаттар</div>
+            <div class="tab" data-tab="direct">Жеке чаттар</div>
+            <div class="tab" data-tab="group">Топтук чаттар</div>
+        </div>
 
         <div class="chats-container">
             <div class="search-container">

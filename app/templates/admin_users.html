@@ -5,162 +5,234 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Admin - Users</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Nunito', sans-serif;
         }
 
         body {
-            background-color: #f1f1f1;
+            background: linear-gradient(135deg, #222831 0%, #393e46 100%);
             height: 100vh;
             display: flex;
             overflow: hidden;
+            color: #eeeeee;
         }
 
         /* Стили для боковой панели */
         .sidebar {
-            width: 250px;
-            background-color: #4a5664;
-            color: white;
+            width: 280px;
+            background: linear-gradient(135deg, #222831 0%, #30475e 100%);
             height: 100vh;
             overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding: 0 10px;
         }
 
         .header {
-            padding: 15px;
-            background-color: #3c4653;
+            padding: 20px 15px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
         }
 
         .header h2 {
-            font-size: 18px;
+            font-size: 22px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #f2a365;
         }
 
         .nav-item {
-            padding: 15px;
+            padding: 16px;
+            margin: 10px 0;
             display: flex;
             align-items: center;
-            color: white;
+            color: #eeeeee;
             text-decoration: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
 
-        .nav-item:hover {
-            background-color: #3c4653;
+        .nav-item:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 15px;
+            background: #30475e;
+            box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2),
+                        inset -3px -3px 5px rgba(255,255,255,0.1);
+            z-index: -1;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover:before {
+            opacity: 1;
         }
 
         .nav-item i {
-            margin-right: 10px;
+            margin-right: 15px;
+            font-size: 18px;
+            color: #f2a365;
         }
 
         .nav-item.active {
-            background-color: #3c4653;
-            border-left: 3px solid #4285f4;
+            color: #ffffff;
+        }
+
+        .nav-item.active:before {
+            opacity: 1;
+            background: linear-gradient(135deg, #f2a365 0%, #f96d00 100%);
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.2),
+                        -3px -3px 5px rgba(255,255,255,0.05);
+        }
+
+        .nav-item.active i {
+            color: #ffffff;
         }
 
         /* Стили для основного содержимого */
         .main-content {
             flex: 1;
-            padding: 20px;
+            padding: 30px;
             overflow-y: auto;
         }
 
         h1 {
-            margin-bottom: 20px;
-            color: #333;
+            margin-bottom: 30px;
+            color: #f2a365;
+            font-size: 28px;
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1:after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(90deg, #f2a365, transparent);
         }
 
         .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .dashboard-header h1 {
-            margin-bottom: 0;
+            margin-bottom: 30px;
         }
 
         /* Статистика верхние карточки */
         .stats-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
 
         .stat-card {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            width: calc(33.33% - 14px);
-            min-width: 200px;
+            background: #30475e;
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            box-shadow: 8px 8px 15px rgba(0,0,0,0.2),
+                        -8px -8px 15px rgba(255,255,255,0.05);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-card .icon {
-            font-size: 24px;
-            color: #4285f4;
-            margin-bottom: 15px;
-            width: 50px;
-            height: 50px;
-            background-color: rgba(66, 133, 244, 0.1);
-            border-radius: 8px;
+            font-size: 28px;
+            color: #f2a365;
+            margin-bottom: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: linear-gradient(135deg, #30475e 0%, #222831 100%);
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.2),
+                        -5px -5px 10px rgba(255,255,255,0.05);
         }
 
         .stat-card h2 {
-            font-size: 28px;
-            margin-bottom: 5px;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #ffffff;
         }
 
         .stat-card p {
-            color: #666;
+            color: #eeeeee;
             margin: 0;
+            font-size: 16px;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #f2a365, #f96d00);
         }
 
         /* Стили для таблицы пользователей */
         .users-container {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: #30475e;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 8px 8px 15px rgba(0,0,0,0.2),
+                        -8px -8px 15px rgba(255,255,255,0.05);
         }
 
         .users-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .users-header h2 {
-            font-size: 18px;
-            color: #333;
+            font-size: 20px;
+            color: #ffffff;
+            font-weight: 600;
+            position: relative;
+            display: inline-block;
         }
 
-        .add-user-btn {
-            padding: 10px 15px;
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-        }
-
-        .add-user-btn i {
-            margin-right: 8px;
+        .users-header h2::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 30%;
+            height: 2px;
+            background: #f2a365;
         }
 
         .search-container {
@@ -170,65 +242,98 @@
 
         .search-container input {
             flex: 1;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px 0 0 4px;
-            font-size: 14px;
+            padding: 15px;
+            border: none;
+            border-radius: 15px 0 0 15px;
+            background: #222831;
+            color: #eeeeee;
+            font-size: 15px;
             outline: none;
+            box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2),
+                       inset -3px -3px 5px rgba(255,255,255,0.05);
         }
 
-        .search-container input:focus {
-            border-color: #4285f4;
+        .search-container input::placeholder {
+            color: rgba(238, 238, 238, 0.5);
         }
 
         .search-container button {
             padding: 0 20px;
-            background-color: #4285f4;
+            background: linear-gradient(135deg, #f2a365 0%, #f96d00 100%);
             color: white;
             border: none;
-            border-radius: 0 4px 4px 0;
+            border-radius: 0 15px 15px 0;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-container button:hover {
+            opacity: 0.9;
         }
 
         .users-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0 10px;
         }
 
         .users-table th {
             text-align: left;
             padding: 15px;
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #eee;
+            background: rgba(34, 40, 49, 0.5);
+            color: #f2a365;
             font-weight: 600;
-            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+
+        .users-table th:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .users-table th:last-child {
+            border-radius: 0 10px 10px 0;
         }
 
         .users-table td {
             padding: 15px;
-            border-bottom: 1px solid #eee;
+            background: #222831;
             vertical-align: middle;
+            color: #eeeeee;
         }
 
-        .users-table tr:last-child td {
-            border-bottom: none;
+        .users-table tr td:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .users-table tr td:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .users-table tr {
+            transition: transform 0.3s ease;
         }
 
         .users-table tr:hover {
-            background-color: #f8f9fa;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
-            background-color: #e9ecef;
+            background: linear-gradient(135deg, #30475e 0%, #222831 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 10px;
-            color: #6c757d;
-            font-weight: bold;
+            margin-right: 15px;
+            color: #f2a365;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.2),
+                       -3px -3px 5px rgba(255,255,255,0.05);
         }
 
         .user-name-cell {
@@ -238,88 +343,37 @@
 
         .user-status {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         .user-status.active {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #28a745;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(40, 167, 69, 0.1) 100%);
+            color: #2ecc71;
         }
 
         .user-status.admin {
-            background-color: rgba(66, 133, 244, 0.1);
-            color: #4285f4;
+            background: linear-gradient(135deg, rgba(242, 163, 101, 0.2) 0%, rgba(249, 109, 0, 0.1) 100%);
+            color: #f2a365;
         }
 
         .user-status.inactive {
-            background-color: rgba(108, 117, 125, 0.1);
-            color: #6c757d;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-            color: #6c757d;
-        }
-
-        .action-btn:hover {
-            background-color: #f8f9fa;
-        }
-
-        .action-btn.edit:hover {
-            color: #4285f4;
-        }
-
-        .action-btn.delete:hover {
-            color: #dc3545;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 25px;
-        }
-
-        .pagination a {
-            margin: 0 5px;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            color: #333;
-            text-decoration: none;
-        }
-
-        .pagination a.active {
-            background-color: #4285f4;
-            color: white;
-            border-color: #4285f4;
-        }
-
-        .pagination a:hover:not(.active) {
-            background-color: #f1f1f1;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.2) 0%, rgba(108, 117, 125, 0.1) 100%);
+            color: #95a5a6;
         }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <div class="header">
-            <h2>Чат Администратор</h2>
+            <h2>Чат Башкаруу</h2>
         </div>
-        <a href="{{ url_for('admin') }}" class="nav-item active">
+        <a href="{{ url_for('admin') }}" class="nav-item">
             <i class="fas fa-tachometer-alt"></i> Башкы
         </a>
-        <a href="{{ url_for('admin_users') }}" class="nav-item">
+        <a href="{{ url_for('admin_users') }}" class="nav-item active">
             <i class="fas fa-users"></i> Колдонуучулар
         </a>
         <a href="{{ url_for('admin_chats') }}" class="nav-item">
@@ -360,7 +414,6 @@
         <div class="users-container">
             <div class="users-header">
                 <h2>Бардык колдонуучулар</h2>
-
             </div>
             
             <div class="search-container">
@@ -395,13 +448,10 @@
                                 <span class="user-status active">Активдүү</span>
                             {% endif %}
                         </td>
-
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            
-
         </div>
     </div>
 
